@@ -14,7 +14,7 @@ export default function Navbar() {
   const navas = [
     { name: "Home", href: "/" },
     { name: "Menu", href: "/menu" },
-    // { name: "About", href: "/about" },
+    { name: "About", href: "/about" },
     { name: "Contact", href: "/contact" },
   ]
 
