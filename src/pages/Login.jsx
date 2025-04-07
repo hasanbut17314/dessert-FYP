@@ -1,21 +1,42 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { Link } from "react-router";
+import { useNavigate } from "react-router";
 
 export default function Login() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
+    name:"",
     email: "",
     password: "",
   });
   const [showPassword, setShowPassword] = useState(false);
 
+  // const handleChange = (e) => {
+  //   setFormData({ ...formData, [e.target.name]: e.target.value })
+  //   // setFormData({ ...formData, name: formData.email.split("@")[0] })
+  // };
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    if (e.target.name === "email") {
+      setFormData((prevFormData) => ({
+        ...prevFormData,
+        name: e.target.value.split("@")[0],
+      }));
+    }
   };
+
+  useEffect(() => {
+    console.log(formData.name);
+  }, [formData.name]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setFormData({ ...formData, name: formData.email.split("@")[0] });
     console.log("Registered Data:", formData);
+    localStorage.setItem("user", JSON.stringify(formData))
+    navigate("/");
   };
 
   return (
@@ -38,6 +59,17 @@ export default function Login() {
             className="w-full p-3 rounded-lg border border-gray-300 text-black"
             required
           />
+
+          {/* <input
+            type="text"
+            name="name"
+            placeholder="Username"
+            value={formData.email.split("@")[0]}
+            readOnly
+            onChange={handleChange}
+            className="w-full p-3 rounded-lg border hidden border-gray-300 text-black"
+            /> */}
+
           <div className="relative">
             <input
               type={showPassword ? "text" : "password"}

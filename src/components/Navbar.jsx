@@ -1,15 +1,17 @@
-import { useState } from "react"
+import { useState, useContext } from "react"
 import { Menu, ShoppingCart, User2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Link,useLocation } from "react-router"
+import { UserContext } from "@/contexts/UserContext"
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const location = useLocation()
-  const [ authenticated, setAuthenticated ] = useState(false);
-  console.log(location.pathname);
-  
+  const { user } = useContext(UserContext)
+  // const [ authenticated, setAuthenticated ] = useState(false);
+  // console.log(location.pathname);
+  console.log(user ? user.name : "No user found in local storage");
 
   const navas = [
     { name: "Home", href: "/" },
@@ -60,9 +62,9 @@ export default function Navbar() {
           <Link to="/cart">
               <ShoppingCart size={30} />
           </Link>
-          <Link to={authenticated ? "/profile" : "/login"} className="flex border border-[#BA4374] p-2 rounded-2xl items-center gap-2">
+          <Link to={user ? "/profile" : "/login"} className="flex border border-[#BA4374] p-2 rounded-2xl items-center gap-2">
               <User2 size={26} />
-              <span>{authenticated ? "Profile" : "Login"}</span>
+              <span>{user ? user.name : "Login"}</span>
           </Link>
           </div>
       </div>
