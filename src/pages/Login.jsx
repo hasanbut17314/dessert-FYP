@@ -2,15 +2,19 @@ import { useState, useEffect } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { Link } from "react-router";
 import { useNavigate } from "react-router";
+import { useContext } from "react";
+import { UserContext } from "@/contexts/UserContext";
 
 export default function Login() {
   const navigate = useNavigate();
+  const { setUser } = useContext(UserContext);
   const [formData, setFormData] = useState({
     name:"",
     email: "",
     password: "",
   });
   const [showPassword, setShowPassword] = useState(false);
+    
 
   // const handleChange = (e) => {
   //   setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -33,6 +37,8 @@ export default function Login() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const newUser = { ...formData, name: formData.email.split("@")[0] };
+    setUser(newUser);
     setFormData({ ...formData, name: formData.email.split("@")[0] });
     console.log("Registered Data:", formData);
     localStorage.setItem("user", JSON.stringify(formData))

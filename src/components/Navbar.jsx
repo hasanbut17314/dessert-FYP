@@ -1,17 +1,19 @@
-import { useState, useContext } from "react"
+import { useState, useContext, useEffect } from "react"
 import { Menu, ShoppingCart, User2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Link,useLocation } from "react-router"
 import { UserContext } from "@/contexts/UserContext"
+import { CartContext } from "@/contexts/CartContext"
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const location = useLocation()
   const { user } = useContext(UserContext)
-  // const [ authenticated, setAuthenticated ] = useState(false);
-  // console.log(location.pathname);
-  console.log(user ? user.name : "No user found in local storage");
+  const { cartItems } = useContext(CartContext)
+  useEffect(() => {
+    // console.log("Navbar mounted or updated");
+  }, [user]);
 
   const navas = [
     { name: "Home", href: "/" },
@@ -59,9 +61,12 @@ export default function Navbar() {
         </nav>
 
           <div className="flex gap-6 items-center">
+          <div className="relative">
           <Link to="/cart">
               <ShoppingCart size={30} />
+          <span className="absolute -top-1 -right-2 bg-[#BA4374] text-white rounded-full text-xs px-2 py-1 font-semibold">{cartItems.length}</span>
           </Link>
+          </div>
           <Link to={user ? "/profile" : "/login"} className="flex border border-[#BA4374] p-2 rounded-2xl items-center gap-2">
               <User2 size={26} />
               <span>{user ? user.name : "Login"}</span>
