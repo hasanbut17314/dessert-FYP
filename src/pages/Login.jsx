@@ -2,15 +2,19 @@ import { useState, useEffect } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { Link } from "react-router";
 import { useNavigate } from "react-router";
+import { useContext } from "react";
+import { UserContext } from "@/contexts/UserContext";
 
 export default function Login() {
   const navigate = useNavigate();
+  const { setUser } = useContext(UserContext);
   const [formData, setFormData] = useState({
     name:"",
     email: "",
     password: "",
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   // const handleChange = (e) => {
   //   setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -33,10 +37,15 @@ export default function Login() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setLoading(true);
+    const newUser = { ...formData, name: formData.email.split("@")[0] };
+    setUser(newUser);
     setFormData({ ...formData, name: formData.email.split("@")[0] });
     console.log("Registered Data:", formData);
     localStorage.setItem("user", JSON.stringify(formData))
-    navigate("/");
+    setTimeout(() => {
+      navigate("/");
+    }, 1000);
   };
 
   return (
@@ -91,9 +100,9 @@ export default function Login() {
         </div>
         <button
           type="submit"
-          className="w-full mt-6 p-3 bg-black text-white font-semibold rounded-lg hover:bg-gray-800"
+          className={`w-full mt-6 py-3 rounded-lg bg-black text-white font-bold transition duration-200 hover:bg-[#BA4374] ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
         >
-          Login
+          {loading ? "Logging in..." : "Login"}
         </button>
         <p className="mt-8">Don't have an account? <Link to="/register" 
         className="text-[#BA4374] bg-black py-1 px-4 font-bold rounded-3xl">
