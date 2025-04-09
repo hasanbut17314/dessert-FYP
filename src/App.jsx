@@ -11,7 +11,7 @@ import { useState, useEffect } from "react";
 import { UserContext } from "./contexts/UserContext";
 import { CartContext } from "./contexts/CartContext";
 import Profile from "./pages/Profile";
-import AdminDashboard from "./pages/AdminDashboard";
+//import AdminDashboard from "./pages/AdminDashboard";
 
 function App() {
   const [user, setUser] = useState(null);
