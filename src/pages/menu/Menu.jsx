@@ -40,7 +40,7 @@ const products = {
 
 export default function MenuPage() {
 
-  const { setCartItems, setTotalPrice, cartItems, totalPrice, setTotalQuantity } = useContext(CartContext);
+  const { setCartItems, setTotalPrice, cartItems, setTotalQuantity } = useContext(CartContext);
   const [selectedCategory, setSelectedCategory] = useState("cakes");
   const itemsInCart = cartItems.map((item) => item.id);
   console.log("Items in cart:", itemsInCart);
@@ -48,14 +48,22 @@ export default function MenuPage() {
   
   const [fetchedImages, setFetchedImages] = useState([]);
 
-  const addToCart = (product) => {
-    return () => {
-      setCartItems((prev) => [...prev, product]);
-      setTotalPrice((prev) => prev + parseFloat(product.price.slice(1)));
-      setTotalQuantity((prev) => prev + 1);
-      console.log("Total Price:", totalPrice);
-    };
+  // Example for adding an item
+const addToCart = (product) => {
+  const existingItem = cartItems.find(item => item.id === product.id);
+  if (existingItem) {
+    setCartItems(prev =>
+      prev.map(item =>
+        item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+      )
+    );
+  } else {
+    setCartItems(prev => [...prev, { ...product, quantity: 1 }]);
   }
+  setTotalPrice(prev => prev + parseFloat(product.price.replace('$', '')))
+  setTotalQuantity(prev => prev + 1);
+};
+
 
   useEffect(() => {
     fetch("https://dummyjson.com/recipes")
@@ -102,7 +110,7 @@ export default function MenuPage() {
             <p className="text-gray-600 my-2">{product.price}</p>
             <button 
             disabled={itemsInCart.includes(product.id)}
-            onClick={addToCart(product)}
+            onClick={()=> addToCart(product)}
             className={`mt-2 ${itemsInCart.includes(product.id) ? "opacity-50 pointer-events-none" : ""} bg-[#BA4374] hover:bg-[#a02f5b] text-white px-4 py-2 rounded-full text-sm font-medium`}>
               {itemsInCart.includes(product.id) ? "Added" : "Add to Cart"}
             </button>

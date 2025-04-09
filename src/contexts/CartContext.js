@@ -6,6 +6,8 @@ export const CartContext = createContext(
         setCartItems: () => {},
         totalPrice: 0,
         removeFromCart: () => {},
+        increaseQuantity: () => {},
+        decreaseQuantity: () => {},
         setTotalPrice: () => {},
         totalQuantity: 0,
         setTotalQuantity: () => {},
