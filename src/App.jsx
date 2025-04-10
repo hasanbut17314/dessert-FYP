@@ -11,7 +11,14 @@ import { useState, useEffect } from "react";
 import { UserContext } from "./contexts/UserContext";
 import { CartContext } from "./contexts/CartContext";
 import Profile from "./pages/Profile";
-//import AdminDashboard from "./pages/AdminDashboard";
+
+import Users from "./pages/admin/Users";
+import CartAdmin from "./pages/admin/Order";
+import Categories from "./pages/admin/Categories";
+import Products from "./pages/admin/Products";
+import Sidebar from "./pages/admin/Sidebar";
+import Orders from "./pages/admin/Order";
+import AdminDashboard from "./pages/AdminDashboard";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -25,6 +32,7 @@ function App() {
     if (storedUser) {
       const parsedUser = JSON.parse(storedUser);
       setUser(parsedUser);
+	  console.log(parsedUser.email);
 		if(parsedUser.email === "admin@gmail.com"){
 			setAdmin(true)
 		}
@@ -109,6 +117,35 @@ function AppContent() {
     </>
   );
 }
+
+function AdminDashboard() {
+	  return (
+			<div style={{ display: "flex" }}>
+        <div className="fixed w-56 bg-slate-800 text-white h-screen flex flex-col z-10">
+				<Sidebar />
+        </div>
+				<div style={{ flex: 1, padding: "20px", marginLeft: "200px" }}>
+				<Routes>
+					<Route path="/" element={<Homeadmin />} />
+					<Route path="/admin/users" element={<Users />} />
+					<Route path="/admin/orders" element={<Orders />} />
+					<Route path="/admin/categories" element={<Categories />} />
+					<Route path="/admin/products" element={<Products />} />
+				</Routes>
+			</div>
+			</div>
+			  );
+			}
+
+function Homeadmin() {
+	  return (
+			<div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100vh" }}>
+
+				<h1>Welcome to the Admin Dashboard</h1>
+				<p>Select an option from the sidebar to manage the application.</p>
+</div>
+	  )}
+				
 
 export default App;
 
