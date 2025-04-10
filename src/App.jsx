@@ -14,10 +14,11 @@ import Profile from "./pages/Profile";
 
 // import AdminDashboard from "./pages/admin/AdminDashboard";
 import Users from "./pages/admin/Users";
-import CartAdmin from "./pages/admin/Cart";
+import CartAdmin from "./pages/admin/Order";
 import Categories from "./pages/admin/Categories";
 import Products from "./pages/admin/Products";
 import Sidebar from "./pages/admin/Sidebar";
+import Orders from "./pages/admin/Order";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -120,12 +121,14 @@ function AppContent() {
 function AdminDashboard() {
 	  return (
 			<div style={{ display: "flex" }}>
+        <div className="fixed w-56 bg-slate-800 text-white h-screen flex flex-col z-10">
 				<Sidebar />
-				<div style={{ flex: 1, padding: "20px" }}>
+        </div>
+				<div style={{ flex: 1, padding: "20px", marginLeft: "200px" }}>
 				<Routes>
 					<Route path="/" element={<Homeadmin />} />
 					<Route path="/admin/users" element={<Users />} />
-					<Route path="/admin/cart" element={<CartAdmin />} />
+					<Route path="/admin/orders" element={<Orders />} />
 					<Route path="/admin/categories" element={<Categories />} />
 					<Route path="/admin/products" element={<Products />} />
 				</Routes>
