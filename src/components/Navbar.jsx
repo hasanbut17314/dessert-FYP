@@ -1,19 +1,19 @@
-import { useState, useContext, useEffect } from "react"
-import { Menu, ShoppingCart, User2 } from "lucide-react"
+import { useState } from "react"
+import { Loader, LogOut, Menu, ShoppingCart, User2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Link,useLocation } from "react-router"
-import { UserContext } from "@/contexts/UserContext"
-import { CartContext } from "@/contexts/CartContext"
+import { Link, useLocation, useNavigate } from "react-router"
+import useAuth from "@/hooks/useAuth"
+import { apiService } from "../lib/axios"
+import { toast } from "sonner"
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const location = useLocation()
-  const { user } = useContext(UserContext)
-  const { cartItems } = useContext(CartContext)
-  useEffect(() => {
-    // console.log("Navbar mounted or updated");
-  }, [user]);
+  const navigate = useNavigate()
+  const [loading, setLoading] = useState(false)
+
+  const { user, isAuthenticated } = useAuth()
 
   const navas = [
     { name: "Home", href: "/" },
@@ -21,6 +21,23 @@ export default function Navbar() {
     { name: "About", href: "/about" },
     { name: "Contact", href: "/contact" },
   ]
+
+  const handleLogout = async () => {
+    setLoading(true)
+    try {
+      await apiService.post("/user/logout", {})
+      localStorage.removeItem("accessToken")
+      localStorage.removeItem("refreshToken")
+      localStorage.removeItem("user")
+      toast.success("Logout successful!")
+      navigate("/login")
+    } catch (error) {
+      console.error(error)
+      toast.error("Logout failed!")
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-black text-white ">
@@ -35,8 +52,8 @@ export default function Navbar() {
             <SheetContent side="left" className="w-[240px] sm:w-[300px]">
               <nav className="flex flex-col gap-4 mt-8 p-4">
                 {navas.map((a) => (
-                  <Link key={a.name} to={a.href} 
-                  className={`text-xl font-medium ${location.pathname === a.href ? "text-[#BA4374]" : "text-black"}`}
+                  <Link key={a.name} to={a.href}
+                    className={`text-xl font-medium ${location.pathname === a.href ? "text-[#BA4374]" : "text-black"}`}
                   >
                     {a.name}
                   </Link>
@@ -52,26 +69,36 @@ export default function Navbar() {
 
         <nav className="hidden lg:flex gap-6">
           {navas.map((a) => (
-            <Link key={a.name} to={a.href} 
-            className={`text-2xl font-medium ${location.pathname === a.href ? "text-[#BA4374]" : "text-white"}`}
+            <Link key={a.name} to={a.href}
+              className={`text-2xl font-medium ${location.pathname === a.href ? "text-[#BA4374]" : "text-white"}`}
             >
               {a.name}
             </Link>
           ))}
         </nav>
 
-          <div className="flex gap-6 items-center">
+        <div className="flex gap-6 items-center">
           <div className="relative">
-          <Link to="/cart">
+            <Link to="/cart">
               <ShoppingCart size={30} />
-          <span className="absolute -top-1 -right-2 bg-[#BA4374] text-white rounded-full text-xs px-2 py-1 font-semibold">{cartItems.length}</span>
-          </Link>
+              <span className="absolute -top-1 -right-2 bg-[#BA4374] text-white rounded-full text-xs px-2 py-1 font-semibold">{0}</span>
+            </Link>
           </div>
-          <Link to={user ? "/profile" : "/login"} className="flex border border-[#BA4374] p-2 rounded-2xl items-center gap-2">
-              <User2 size={26} />
-              <span>{user ? user.name : "Login"}</span>
+          <Link to={isAuthenticated ? "/profile" : "/login"} className="flex border border-[#BA4374] p-2 rounded-2xl items-center gap-2">
+            <User2 size={26} />
+            {isAuthenticated ? (
+              <span>{user?.firstName}</span>
+            ) : (
+              <span>Login</span>
+            )}
           </Link>
-          </div>
+          {isAuthenticated && (
+            <Button variant="ghost" className="border border-[#BA4374] p-2 rounded-2xl" onClick={handleLogout} title="Logout" disabled={loading}>
+              <span className="sr-only">Logout</span>
+              {loading ? <Loader className="animate-spin w-6 h-6" /> : <LogOut size={35} />}
+            </Button>
+          )}
+        </div>
       </div>
     </header>
   )

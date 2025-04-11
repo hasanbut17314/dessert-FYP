@@ -1,8 +1,11 @@
 import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader } from "lucide-react";
 import { Link } from "react-router";
+import { apiService } from "../../lib/axios"
+import { toast } from "sonner";
 
 export default function Register() {
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -17,22 +20,47 @@ export default function Register() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match");
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.password || !formData.confirmPassword) {
+      toast.error("Please fill all fields!");
       return;
     }
-    console.log("Registered Data:", formData);
+    if (formData.password !== formData.confirmPassword) {
+      toast.error("Passwords do not match!");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await apiService.post("/user/register", formData, { withAuth: false });
+      setFormData({
+        firstName: "",
+        lastName: "",
+        email: "",
+        password: "",
+        confirmPassword: "",
+      });
+      toast.success("Registration successful! Please check your email to verify your account.");
+    } catch (error) {
+      console.error(error);
+      if (error.response?.status === 403) {
+        toast.error(error.response.data.message || "Invalid Email! Please provide a valid email.");
+      } else {
+        toast.error("An error occurred. Please try again.");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="flex my-8 items-center justify-center text-white">
-       <form
-              onSubmit={handleSubmit}
-        className="w-full py-20 max-w-md bg-[#BA4374] p-8 rounded-lg shadow-lg"
+    <div className="flex my-5 sm:my-7 mx-3 items-center sm:min-h-screen min-h-[90vh] justify-center text-white">
+      <form
+        onSubmit={handleSubmit}
+        className="w-full py-14 max-w-md bg-[#BA4374] p-8 rounded-lg shadow-lg"
         style={{
-            background : "rgba(186, 67, 116, 0.8)"
+          background: "rgba(186, 67, 116, 0.8)"
         }}
       >
         <h2 className="text-3xl font-bold mb-6 text-center">Register</h2>
@@ -103,12 +131,13 @@ export default function Register() {
         </div>
         <button
           type="submit"
+          disabled={loading}
           className="w-full mt-6 p-3 bg-black text-white font-semibold rounded-lg hover:bg-gray-800"
         >
-          Register
+          {loading ? <Loader className="animate-spin mx-auto" /> : "Register"}
         </button>
         <p className="mt-4">Already have an account? <Link to="/login"
-        className="text-[#BA4374] bg-black py-1 px-4 font-bold rounded-3xl"
+          className="text-[#BA4374] bg-black py-1 px-4 font-bold rounded-3xl"
         >Login</Link></p>
       </form>
     </div>

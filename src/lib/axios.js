@@ -47,6 +47,7 @@ const tokenService = {
 const skipAuthUrls = [
     '/user/login',
     '/user/register',
+    'user/verify-email',
 ];
 api.interceptors.request.use(
     (config) => {
@@ -71,7 +72,7 @@ api.interceptors.response.use(
     async (error) => {
         const originalRequest = error.config;
 
-        if (error.response?.status !== 401 || originalRequest._retry) {
+        if (originalRequest._retry) {
             return Promise.reject(error);
         }
 
@@ -86,47 +87,51 @@ api.interceptors.response.use(
                 .catch(err => Promise.reject(err));
         }
 
-        originalRequest._retry = true;
-        isRefreshing = true;
+        if (error.response?.data?.message === 'Unauthorized request' || error.response?.data?.message === 'Invalid Access Token') {
 
-        try {
-            const refreshToken = tokenService.getRefreshToken();
+            originalRequest._retry = true;
+            isRefreshing = true;
 
-            if (!refreshToken) {
-                tokenService.clearTokens();
-                window.location.href = '/login';
-                throw new Error('No refresh token available');
-            }
+            try {
+                const refreshToken = tokenService.getRefreshToken();
 
-            const response = await axios.post(
-                `${api.defaults.baseURL}/user/recreateAccessToken`,
-                { refreshToken },
-                {
-                    withCredentials: true,
-                    withAuth: true
+                if (!refreshToken) {
+                    tokenService.clearTokens();
+                    window.location.href = '/login';
+                    throw new Error('No refresh token available');
                 }
-            );
 
-            const { accessToken, refreshToken: newRefreshToken } = response.data;
+                const response = await axios.post(
+                    `${api.defaults.baseURL}/user/recreateAccessToken`,
+                    { refreshToken },
+                    {
+                        withCredentials: true,
+                        withAuth: true
+                    }
+                );
 
-            tokenService.setTokens(accessToken, newRefreshToken);
+                const { accessToken, refreshToken: newRefreshToken } = response.data;
 
-            api.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
-            originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+                tokenService.setTokens(accessToken, newRefreshToken);
 
-            processQueue(null, accessToken);
+                api.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
+                originalRequest.headers.Authorization = `Bearer ${accessToken}`;
 
-            return api(originalRequest);
-        } catch (err) {
-            tokenService.clearTokens();
+                processQueue(null, accessToken);
 
-            processQueue(err, null);
-            window.location.href = '/login';
+                return api(originalRequest);
+            } catch (err) {
+                tokenService.clearTokens();
 
-            return Promise.reject(err);
-        } finally {
-            isRefreshing = false;
+                processQueue(err, null);
+                window.location.href = '/login';
+
+                return Promise.reject(err);
+            } finally {
+                isRefreshing = false;
+            }
         }
+        return Promise.reject(error);
     }
 );
 
@@ -181,74 +186,6 @@ const apiService = {
             onUploadProgress,
             ...restOptions
         });
-    },
-
-    auth: {
-        async login(credentials) {
-            return await apiRequest({
-                method: 'post',
-                url: '/user/login',
-                data: credentials,
-                withAuth: false
-            }).then(response => {
-                const data = response.data?.data;
-                if (data) {
-                    const accessToken = data.accessToken;
-                    const refreshToken = data.refreshToken;
-                    tokenService.setTokens(accessToken, refreshToken);
-                    localStorage.setItem('user', JSON.stringify(data.user));
-                }
-                return response;
-            }).catch(error => {
-                console.error('Login error:', error.response?.data?.message || error.message);
-                throw error;
-            });
-        },
-
-        async register(userData) {
-            return await apiRequest({
-                method: 'post',
-                url: '/user/register',
-                data: userData,
-                withAuth: false
-            }).then(response => {
-                return response;
-            }).catch(error => {
-                console.error('Registration error:', error.response?.data?.message || error.message);
-                throw error;
-            });
-        },
-
-        async verifyEmail(token) {
-            return await apiRequest({
-                method: 'get',
-                url: `/user/verify-email/${token}`,
-                withAuth: false
-            }).then(response => {
-                return response;
-            }).catch(error => {
-                console.error('Email verification error:', error.response?.data?.message || error.message);
-                throw error;
-            });
-        },
-
-        async logout() {
-            const refreshToken = tokenService.getRefreshToken();
-
-            if (refreshToken) {
-                return await apiRequest({
-                    method: 'post',
-                    url: '/user/logout',
-                    data: { refreshToken },
-                    withAuth: true
-                }).finally(() => {
-                    tokenService.clearTokens();
-                });
-            }
-
-            tokenService.clearTokens();
-            return Promise.resolve();
-        },
     }
 };
 

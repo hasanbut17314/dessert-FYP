@@ -1,60 +1,69 @@
-import { useState, useEffect } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { useState } from "react";
+import { Eye, EyeOff, Loader } from "lucide-react";
 import { Link } from "react-router";
 import { useNavigate } from "react-router";
-import { useContext } from "react";
-import { UserContext } from "@/contexts/UserContext";
+import { apiService } from "../../lib/axios";
+import { toast } from "sonner";
 
 export default function Login() {
   const navigate = useNavigate();
-  const { setUser } = useContext(UserContext);
   const [formData, setFormData] = useState({
-    name:"",
     email: "",
-    password: "",
+    password: ""
   });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // const handleChange = (e) => {
-  //   setFormData({ ...formData, [e.target.name]: e.target.value })
-  //   // setFormData({ ...formData, name: formData.email.split("@")[0] })
-  // };
-
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-    if (e.target.name === "email") {
-      setFormData((prevFormData) => ({
-        ...prevFormData,
-        name: e.target.value.split("@")[0],
-      }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!formData.email || !formData.password) {
+      toast.error("Please fill all fields!");
+      return;
+    }
+    if (!formData.email.includes("@")) {
+      toast.error("Please provide a valid email!");
+      return;
+    }
+    try {
+      setLoading(true);
+      const response = await apiService.post("/user/login", formData, { withAuth: false });
+      console.log(response);
+      const accessToken = response?.data?.data?.accessToken;
+      const refreshToken = response?.data?.data?.refreshToken;
+      const user = response?.data?.data?.user;
+      localStorage.setItem("accessToken", accessToken);
+      localStorage.setItem("refreshToken", refreshToken);
+      localStorage.setItem("user", JSON.stringify(user));
+      toast.success("Login successful!");
+      const role = user?.role || "user";
+      if (role === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/");
+      }
+    } catch (error) {
+      console.log(error);
+      if (error.response?.status === 401) {
+        toast.error(error.response.data.message || "Please Verify Your Email!");
+      } else {
+        toast.error("Invalid Credentials!");
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
-  useEffect(() => {
-    console.log(formData.name);
-  }, [formData.name]);
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setLoading(true);
-    const newUser = { ...formData, name: formData.email.split("@")[0] };
-    setUser(newUser);
-    setFormData({ ...formData, name: formData.email.split("@")[0] });
-    console.log("Registered Data:", formData);
-    localStorage.setItem("user", JSON.stringify(formData))
-    setTimeout(() => {
-      navigate("/");
-    }, 1000);
-  };
-
   return (
-    <div className="my-8 flex items-center justify-center text-white">
+    <div className="sm:my-0 my-5 mx-3 md:min-h-screen min-h-[90vh] flex items-center justify-center text-white">
       <form
         onSubmit={handleSubmit}
         className="w-full py-20 max-w-md bg-[#BA4374] p-8 rounded-lg shadow-lg"
         style={{
-            background : "rgba(186, 67, 116, 0.8)"
+          background: "rgba(186, 67, 116, 0.8)"
         }}
       >
         <h2 className="text-3xl font-bold mb-6 text-center">Login</h2>
@@ -68,16 +77,6 @@ export default function Login() {
             className="w-full p-3 rounded-lg border border-gray-300 text-black"
             required
           />
-
-          {/* <input
-            type="text"
-            name="name"
-            placeholder="Username"
-            value={formData.email.split("@")[0]}
-            readOnly
-            onChange={handleChange}
-            className="w-full p-3 rounded-lg border hidden border-gray-300 text-black"
-            /> */}
 
           <div className="relative">
             <input
@@ -100,13 +99,14 @@ export default function Login() {
         </div>
         <button
           type="submit"
+          disabled={loading}
           className={`w-full mt-6 py-3 rounded-lg bg-black text-white font-bold transition duration-200 hover:bg-[#BA4374] ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
         >
-          {loading ? "Logging in..." : "Login"}
+          {loading ? <Loader className="animate-spin mx-auto" /> : "Login"}
         </button>
-        <p className="mt-8">Don't have an account? <Link to="/register" 
-        className="text-[#BA4374] bg-black py-1 px-4 font-bold rounded-3xl">
-        Register</Link> </p>
+        <p className="mt-8">Don't have an account? <Link to="/register"
+          className="text-[#BA4374] bg-black py-1 px-4 font-bold rounded-3xl">
+          Register</Link> </p>
       </form>
     </div>
   );
