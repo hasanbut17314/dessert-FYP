@@ -196,6 +196,7 @@ const apiService = {
                     const accessToken = data.accessToken;
                     const refreshToken = data.refreshToken;
                     tokenService.setTokens(accessToken, refreshToken);
+                    localStorage.setItem('user', JSON.stringify(data.user));
                 }
                 return response;
             }).catch(error => {
@@ -211,15 +212,22 @@ const apiService = {
                 data: userData,
                 withAuth: false
             }).then(response => {
-                const data = response.data?.data;
-                if (data) {
-                    const accessToken = data.accessToken;
-                    const refreshToken = data.refreshToken;
-                    tokenService.setTokens(accessToken, refreshToken);
-                }
                 return response;
             }).catch(error => {
                 console.error('Registration error:', error.response?.data?.message || error.message);
+                throw error;
+            });
+        },
+
+        async verifyEmail(token) {
+            return await apiRequest({
+                method: 'get',
+                url: `/user/verify-email/${token}`,
+                withAuth: false
+            }).then(response => {
+                return response;
+            }).catch(error => {
+                console.error('Email verification error:', error.response?.data?.message || error.message);
                 throw error;
             });
         },

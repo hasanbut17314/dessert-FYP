@@ -18,7 +18,6 @@ import Categories from "./pages/admin/Categories";
 import Products from "./pages/admin/Products";
 import Sidebar from "./pages/admin/Sidebar";
 import Orders from "./pages/admin/Order";
-import AdminDashboard from "./pages/AdminDashboard";
 
 function App() {
   const [user, setUser] = useState(null);
