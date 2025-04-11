@@ -94,38 +94,11 @@ const Orders = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-
+      <div className="bg-white rounded-lg shadow-sm border border-slate-200 overflow-x-auto">
 
         <Tabs.Root defaultValue="all">
-          <Tabs.List className="flex border-b border-slate-200">
-            <Tabs.Trigger 
-              value="all" 
-              className="px-4 py-2 text-sm data-[state=active]:border-b-2 data-[state=active]:border-green-600 data-[state=active]:font-medium"
-            >
-              All Orders
-            </Tabs.Trigger>
-            <Tabs.Trigger 
-              value="processing" 
-              className="px-4 py-2 text-sm data-[state=active]:border-b-2 data-[state=active]:border-green-600 data-[state=active]:font-medium"
-            >
-              Processing
-            </Tabs.Trigger>
-            <Tabs.Trigger 
-              value="delivered" 
-              className="px-4 py-2 text-sm data-[state=active]:border-b-2 data-[state=active]:border-green-600 data-[state=active]:font-medium"
-            >
-              Delivered
-            </Tabs.Trigger>
-            <Tabs.Trigger 
-              value="cancelled" 
-              className="px-4 py-2 text-sm data-[state=active]:border-b-2 data-[state=active]:border-green-600 data-[state=active]:font-medium"
-            >
-              Cancelled
-            </Tabs.Trigger>
-          </Tabs.List>
 
-            <table className="w-full border-t border-slate-200">
+            <table className="w-full border-t border-slate-200 overflow-x-auto">
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50">
                   <td className="py-3 px-4 text-sm font-medium text-slate-600 text-left">Order ID</td>

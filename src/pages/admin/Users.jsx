@@ -77,7 +77,7 @@ const Users = () => {
 
       <div className="bg-white rounded-lg w-full shadow-sm border border-slate-200 overflow-hidden">
 
-        <Tabs.Root defaultValue="all" className='w-full'>
+        <Tabs.Root defaultValue="all" className='w-full overflow-x-auto'>
             <table className='w-full'>
               <thead>
                 <tr className="border-b border-slate-200 bg-slate-50">

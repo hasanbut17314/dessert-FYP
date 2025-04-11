@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router";
 import Navbar from "./components/Navbar";
 import Home from "./pages/home/Home";
 import Menu from "./pages/menu/Menu";
@@ -15,6 +15,7 @@ import Orders from "./pages/admin/Order";
 import Categories from "./pages/admin/Categories";
 import Products from "./pages/admin/Products";
 import Sidebar from "./pages/admin/Sidebar";
+import Dashboard from "./pages/admin/AdminDashboard";
 
 import { Toaster } from "./components/ui/sonner";
 
@@ -38,7 +39,28 @@ function Routing() {
             </>
           }
         />
-        <Route
+
+<Route
+  path="/admin/*"
+  element={
+    <div className="flex flex-col lg:flex-row min-h-screen bg-slate-100">
+      <Sidebar />
+      <div className="flex-1 transition-all duration-300 p-4 lg:p-6 lg:ml-56">
+        <Routes>
+          <Route path="/" element={<Navigate to="/admin/dashboard" />} />
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="users" element={<Users />} />
+          <Route path="orders" element={<Orders />} />
+          <Route path="categories" element={<Categories />} />
+          <Route path="products" element={<Products />} />
+        </Routes>
+      </div>
+    </div>
+  }
+/>
+
+
+        {/* <Route
           path="/admin/*"
           element={
             <div style={{ display: "flex" }}>
@@ -47,6 +69,7 @@ function Routing() {
               </div>
               <div style={{ flex: 1, padding: "20px", marginLeft: "200px" }}>
                 <Routes>
+                  <Route path="/" element={<Navigate to="/admin/dashboard" />} />
                   <Route path="users" element={<Users />} />
                   <Route path="orders" element={<Orders />} />
                   <Route path="categories" element={<Categories />} />
@@ -55,7 +78,8 @@ function Routing() {
               </div>
             </div>
           }
-        />
+        /> */}
+        
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/verify-email/:token" element={<VerifyEmail />} />

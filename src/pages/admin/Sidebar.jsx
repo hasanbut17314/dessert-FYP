@@ -1,55 +1,89 @@
+import { useState } from 'react';
 import { Link, useLocation } from "react-router";
 import * as NavigationMenu from '@radix-ui/react-navigation-menu';
-import { HomeIcon, UsersIcon, ShoppingCartIcon, LayersIcon, PackageIcon } from 'lucide-react';
+import { HomeIcon, UsersIcon, ShoppingCartIcon, LayersIcon, PackageIcon, MenuIcon, XIcon } from 'lucide-react';
 
 const Sidebar = () => {
   const location = useLocation();
+  const [isOpen, setIsOpen] = useState(false);
+  
   const menu = [
-    // { path: "/admin/dashboard", label: "Dashboard", icon: <HomeIcon size={18} /> },
+    { path: "/admin/dashboard", label: "Dashboard", icon: <HomeIcon size={18} /> },
     { path: "/admin/users", label: "Users", icon: <UsersIcon size={18} /> },
     { path: "/admin/orders", label: "Orders", icon: <ShoppingCartIcon size={18} /> },
     { path: "/admin/categories", label: "Categories", icon: <LayersIcon size={18} /> },
     { path: "/admin/products", label: "Products", icon: <PackageIcon size={18} /> },
   ];
 
+  const toggleSidebar = () => {
+    setIsOpen(!isOpen);
+  };
+
   return (
-    <div className="w-56 bg-slate-800 text-white h-screen p-4 flex flex-col">
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold py-4 px-2">Admin Panel</h2>
-      </div>
+    <>
+      {/* Mobile menu toggle button - visible only on small screens */}
+      <button 
+        className="lg:hidden fixed top-4 left-4 z-20 p-2 rounded-md bg-slate-700 text-white"
+        onClick={toggleSidebar}
+      >
+        {isOpen ? <XIcon size={20} /> : <MenuIcon size={20} />}
+      </button>
       
-      <NavigationMenu.Root orientation="vertical" className="w-full">
-        <NavigationMenu.List className="flex flex-col space-y-1 w-full">
-          {menu.map((item) => {
-            const isActive = location.pathname === item.path;
-            return (
-              <NavigationMenu.Item key={item.path} className="w-full">
-                <Link
-                  to={item.path}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-md w-full transition-colors ${
-                    isActive 
-                      ? 'bg-green-600 text-white font-medium' 
-                      : 'text-slate-200 hover:bg-slate-700'
-                  }`}
-                >
-                  {item.icon}
-                  <span>{item.label}</span>
-                </Link>
-              </NavigationMenu.Item>
-            );
-          })}
-        </NavigationMenu.List>
-      </NavigationMenu.Root>
+      {/* Overlay to capture clicks outside the sidebar on mobile */}
+      {isOpen && (
+        <div 
+          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-10"
+          onClick={toggleSidebar}
+        />
+      )}
       
-      <div className="mt-auto pb-4 px-3">
-        <div className="flex items-center gap-3 text-sm text-slate-400">
-          <div>
-            <p className="text-slate-200">Admin User</p>
-            <p>admin@example.com</p>
+      {/* Sidebar */}
+      <div className={`
+        fixed top-0 left-0 h-screen bg-slate-800 text-white z-20
+        transition-transform duration-300 ease-in-out
+        lg:w-56 lg:translate-x-0 w-64
+        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+      `}>
+        <div className="p-4 flex flex-col h-full">
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold py-4 px-2">Admin Panel</h2>
+          </div>
+          
+          <NavigationMenu.Root orientation="vertical" className="w-full">
+            <NavigationMenu.List className="flex flex-col space-y-1 w-full">
+              {menu.map((item) => {
+                const isActive = location.pathname === item.path;
+                return (
+                  <NavigationMenu.Item key={item.path} className="w-full">
+                    <Link
+                      to={item.path}
+                      className={`flex items-center gap-3 px-3 py-2 rounded-md w-full transition-colors ${
+                        isActive 
+                          ? 'bg-green-600 text-white font-medium' 
+                          : 'text-slate-200 hover:bg-slate-700'
+                      }`}
+                      onClick={() => setIsOpen(false)}
+                    >
+                      {item.icon}
+                      <span>{item.label}</span>
+                    </Link>
+                  </NavigationMenu.Item>
+                );
+              })}
+            </NavigationMenu.List>
+          </NavigationMenu.Root>
+          
+          <div className="mt-auto pb-4 px-3">
+            <div className="flex items-center gap-3 text-sm text-slate-400">
+              <div>
+                <p className="text-slate-200">Admin User</p>
+                <p>admin@example.com</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
@@ -57,42 +91,61 @@ export default Sidebar;
 
 
 
+
+
+
+
 // import { Link, useLocation } from "react-router";
+// import * as NavigationMenu from '@radix-ui/react-navigation-menu';
+// import { HomeIcon, UsersIcon, ShoppingCartIcon, LayersIcon, PackageIcon } from 'lucide-react';
 
 // const Sidebar = () => {
 //   const location = useLocation();
 //   const menu = [
-//     { path: "/admin/users", label: "Users" },
-//     { path: "/admin/cart", label: "Added to Cart" },
-//     { path: "/admin/categories", label: "Categories" },
-//     { path: "/admin/products", label: "Products" },
+//     { path: "/admin/dashboard", label: "Dashboard", icon: <HomeIcon size={18} /> },
+//     { path: "/admin/users", label: "Users", icon: <UsersIcon size={18} /> },
+//     { path: "/admin/orders", label: "Orders", icon: <ShoppingCartIcon size={18} /> },
+//     { path: "/admin/categories", label: "Categories", icon: <LayersIcon size={18} /> },
+//     { path: "/admin/products", label: "Products", icon: <PackageIcon size={18} /> },
 //   ];
 
 //   return (
-//     <div style={{
-//       width: "200px",
-//       background: "#222",
-//       color: "#fff",
-//       height: "100vh",
-//       padding: "20px",
-//       boxSizing: "border-box"
-//     }}>
-//       <h2 className="text-2xl font-bold my-8">Admin</h2>
-//       <ul style={{ listStyle: "none", padding: 0 }}>
-//         {menu.map((item) => (
-//           <li key={item.path} style={{ margin: "20px 0" }}>
-//             <Link 
-//               to={item.path} 
-//               style={{ 
-//                 color: location.pathname === item.path ? "#4CAF50" : "#fff", 
-//                 textDecoration: "none" 
-//               }}
-//             >
-//               {item.label}
-//             </Link>
-//           </li>
-//         ))}
-//       </ul>
+//     <div className="w-56 bg-slate-800 text-white h-screen p-4 flex flex-col">
+//       <div className="mb-8">
+//         <h2 className="text-2xl font-bold py-4 px-2">Admin Panel</h2>
+//       </div>
+      
+//       <NavigationMenu.Root orientation="vertical" className="w-full">
+//         <NavigationMenu.List className="flex flex-col space-y-1 w-full">
+//           {menu.map((item) => {
+//             const isActive = location.pathname === item.path;
+//             return (
+//               <NavigationMenu.Item key={item.path} className="w-full">
+//                 <Link
+//                   to={item.path}
+//                   className={`flex items-center gap-3 px-3 py-2 rounded-md w-full transition-colors ${
+//                     isActive 
+//                       ? 'bg-green-600 text-white font-medium' 
+//                       : 'text-slate-200 hover:bg-slate-700'
+//                   }`}
+//                 >
+//                   {item.icon}
+//                   <span>{item.label}</span>
+//                 </Link>
+//               </NavigationMenu.Item>
+//             );
+//           })}
+//         </NavigationMenu.List>
+//       </NavigationMenu.Root>
+      
+//       <div className="mt-auto pb-4 px-3">
+//         <div className="flex items-center gap-3 text-sm text-slate-400">
+//           <div>
+//             <p className="text-slate-200">Admin User</p>
+//             <p>admin@example.com</p>
+//           </div>
+//         </div>
+//       </div>
 //     </div>
 //   );
 // };
