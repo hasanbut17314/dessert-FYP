@@ -81,11 +81,11 @@ const addToCart = (product) => {
       <h1 className="text-4xl font-bold text-center text-[#BA4374] mb-10">Our Menu</h1>
 
       {/* Tabs */}
-      <div className="flex justify-center gap-4 mb-8">
+      <div className="flex justify-center md:gap-4 gap-2 mb-8">
         {categories.map((cat) => (
           <button
             key={cat.id}
-            className={`px-5 py-2 font-semibold rounded-full border-2 transition-all duration-200 ${
+            className={`md:px-5 md:py-2 p-2 font-semibold rounded-full border-2 transition-all duration-200 ${
               selectedCategory === cat.id
                 ? "bg-[#BA4374] text-white border-[#BA4374]"
                 : "bg-white text-[#BA4374] border-[#BA4374]"

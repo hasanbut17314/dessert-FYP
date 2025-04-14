@@ -18,6 +18,7 @@ import Sidebar from "./pages/admin/Sidebar";
 import Dashboard from "./pages/admin/AdminDashboard";
 
 import { Toaster } from "./components/ui/sonner";
+import About from "./pages/about/About";
 
 function Routing() {
   return (
@@ -34,6 +35,8 @@ function Routing() {
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/contact" element={<ContactUs />} />
                 <Route path="/profile" element={<Profile />} />
+                <Route path="/about" element={<About />} />
+
               </Routes>
               <Footer />
             </>

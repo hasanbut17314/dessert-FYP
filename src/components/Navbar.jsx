@@ -53,6 +53,7 @@ export default function Navbar() {
               <nav className="flex flex-col gap-4 mt-8 p-4">
                 {navas.map((a) => (
                   <Link key={a.name} to={a.href}
+                    onClick={() => setIsOpen(false)}
                     className={`text-xl font-medium ${location.pathname === a.href ? "text-[#BA4374]" : "text-black"}`}
                   >
                     {a.name}
