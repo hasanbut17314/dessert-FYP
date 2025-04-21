@@ -1,7 +1,62 @@
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { TrendingUp, Users, ShoppingCart, DollarSign, Package } from 'lucide-react';
+import { apiService } from '../../lib/axios';
+import { useEffect, useState } from 'react';
 
 const Dashboard = () => {
+
+  const [totalAnalytics, setTotalAnalytics] = useState({});
+  const [loading, setLoading] = useState(true);
+
+  const [topProducts, setTopProducts] = useState([]);
+  const [topCategories, setTopCategories] = useState([]);
+
+  const fetchTotalAnalytics = async () => {
+    setLoading(true);
+    try {
+      const response = await apiService.get('/analytics/totalAnalytics');
+      setTotalAnalytics(response?.data?.data);
+    } catch (error) {
+      console.error('Error fetching total analytics:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTotalAnalytics();
+  }, []);
+
+  const fetchTopProducts = async () => {
+    try {
+      const response = await apiService.get('/analytics/topProducts');
+      setTopProducts(response?.data?.data);
+    } catch (error) {
+      console.error('Error fetching top products:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTopProducts();
+  }, []);
+
+  const fetchSalesByCategory = async () => {
+    try {
+      const response = await apiService.get('/analytics/salesByCategory');
+      setTopCategories(response?.data?.data);
+    } catch (error) {
+      console.error('Error fetching sales by category:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSalesByCategory();
+  }, []);
+
   const salesData = [
     { month: 'Jan', sales: 4000, orders: 240 },
     { month: 'Feb', sales: 3000, orders: 198 },
@@ -13,42 +68,34 @@ const Dashboard = () => {
   ]
 
   const statCards = [
-    { 
-      title: "Total Users", 
-      value: "5,240", 
-      change: "+12.5%", 
+    {
+      title: "Total Users",
+      value: totalAnalytics?.totalUsers || 0,
+      change: "+12.5%",
       icon: <Users size={24} className="text-blue-500" />,
       color: "bg-blue-100 text-blue-800"
     },
-    { 
-      title: "Total Orders", 
-      value: "1,708", 
-      change: "+8.2%", 
+    {
+      title: "Total Orders",
+      value: totalAnalytics?.totalOrders || 0,
+      change: "+8.2%",
       icon: <ShoppingCart size={24} className="text-green-500" />,
       color: "bg-green-100 text-green-800"
     },
-    { 
-      title: "Revenue", 
-      value: "$24,590", 
-      change: "+18.3%", 
+    {
+      title: "Revenue",
+      value: totalAnalytics?.revenue || 0,
+      change: "+18.3%",
       icon: <DollarSign size={24} className="text-purple-500" />,
       color: "bg-purple-100 text-purple-800"
     },
-    { 
-      title: "Products", 
-      value: "432", 
-      change: "+5.7%", 
+    {
+      title: "Products",
+      value: totalAnalytics?.totalProducts || 0,
+      change: "+5.7%",
       icon: <Package size={24} className="text-orange-500" />,
       color: "bg-orange-100 text-orange-800"
     },
-  ];
-
-  const topProducts = [
-    { id: 1, name: "Mango Shake", price: "$299", sales: 156 },
-    { id: 2, name: "Chocolate icecream", price: "$89", sales: 145 },
-    { id: 3, name: "Smart Chips", price: "$24", sales: 132 },
-    { id: 4, name: "Harry Potter's Galleto", price: "$19", sales: 124 },
-    { id: 5, name: "Monitor desert", price: "$59", sales: 98 },
   ];
 
   return (
@@ -106,9 +153,9 @@ const Dashboard = () => {
           </ResponsiveContainer>
         </div>
       </div>
-      
-      {/* Top Products */}
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Top Products */}
         <div className="bg-white rounded-lg shadow p-4">
           <h2 className="text-lg font-semibold mb-4">Top Products</h2>
           <div className="overflow-x-auto">
@@ -121,39 +168,37 @@ const Dashboard = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {topProducts.map((product) => (
-                  <tr key={product.id}>
+                {topProducts?.length > 0 ? topProducts.map((product) => (
+                  <tr key={product._id}>
                     <td className="px-4 py-3 whitespace-nowrap">{product.name}</td>
                     <td className="px-4 py-3 whitespace-nowrap">{product.price}</td>
-                    <td className="px-4 py-3 whitespace-nowrap">{product.sales}</td>
+                    <td className="px-4 py-3 whitespace-nowrap">{product.quantity}</td>
                   </tr>
-                ))}
+                )) : (
+                  <tr>
+                    <td colSpan="3" className="px-4 py-3 whitespace-nowrap text-center">No data available</td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
         </div>
-        
+
         {/* Category Distribution */}
         <div className="bg-white rounded-lg shadow p-4">
           <h2 className="text-lg font-semibold mb-4">Sales by Category</h2>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart 
-                data={[
-                  { name: 'Electronics', value: 4000 },
-                  { name: 'Clothing', value: 3000 },
-                  { name: 'Home', value: 2000 },
-                  { name: 'Books', value: 2780 },
-                  { name: 'Other', value: 1890 },
-                ]}
+              <BarChart
+                data={topCategories}
                 margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
+                <XAxis dataKey="_id" />
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="value" name="Sales ($)" fill="#82ca9d" />
+                <Bar dataKey="totalSales" name="Sales ($)" fill="#82ca9d" />
               </BarChart>
             </ResponsiveContainer>
           </div>

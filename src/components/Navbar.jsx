@@ -77,7 +77,7 @@ export default function Navbar() {
           ))}
         </nav>
 
-        <div className="flex gap-6 items-center">
+        <div className="flex md:gap-6 gap-3 items-center">
           <div className="relative">
             <Link to="/cart">
               <ShoppingCart size={30} />
@@ -87,9 +87,9 @@ export default function Navbar() {
           <Link to={isAuthenticated ? "/profile" : "/login"} className="flex border border-[#BA4374] p-2 rounded-2xl items-center gap-2">
             <User2 size={26} />
             {isAuthenticated ? (
-              <span>{user?.firstName}</span>
+              <span className="sm:block hidden">{user?.firstName}</span>
             ) : (
-              <span>Login</span>
+              <span className="sm:block hidden">Login</span>
             )}
           </Link>
           {isAuthenticated && (

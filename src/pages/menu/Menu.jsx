@@ -65,8 +65,8 @@ export default function MenuPage() {
           <button
             key={cat.id}
             className={`md:px-5 md:py-2 p-2 font-semibold rounded-full border-2 transition-all duration-200 ${selectedCategory === cat.id
-                ? "bg-[#BA4374] text-white border-[#BA4374]"
-                : "bg-white text-[#BA4374] border-[#BA4374]"
+              ? "bg-[#BA4374] text-white border-[#BA4374]"
+              : "bg-white text-[#BA4374] border-[#BA4374]"
               }`}
             onClick={() => setSelectedCategory(cat.id)}
           >
@@ -87,10 +87,8 @@ export default function MenuPage() {
             <h3 className="text-xl font-semibold text-[#BA4374]">{product.name}</h3>
             <p className="text-gray-600 my-2">{product.price}</p>
             <button
-              disabled={itemsInCart.includes(product.id)}
-              onClick={() => addToCart(product)}
-              className={`mt-2 ${itemsInCart.includes(product.id) ? "opacity-50 pointer-events-none" : ""} bg-[#BA4374] hover:bg-[#a02f5b] text-white px-4 py-2 rounded-full text-sm font-medium`}>
-              {itemsInCart.includes(product.id) ? "Added" : "Add to Cart"}
+              className={`mt-2 bg-[#BA4374] hover:bg-[#a02f5b] text-white px-4 py-2 rounded-full text-sm font-medium`}>
+              Add to Cart
             </button>
           </div>
         ))}
