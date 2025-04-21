@@ -26,16 +26,15 @@ export default function Navbar() {
     setLoading(true)
     try {
       await apiService.post("/user/logout", {})
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setLoading(false)
       localStorage.removeItem("accessToken")
       localStorage.removeItem("refreshToken")
       localStorage.removeItem("user")
       toast.success("Logout successful!")
       navigate("/login")
-    } catch (error) {
-      console.error(error)
-      toast.error("Logout failed!")
-    } finally {
-      setLoading(false)
     }
   }
 

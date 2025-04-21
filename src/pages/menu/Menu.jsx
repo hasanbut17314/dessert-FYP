@@ -1,5 +1,4 @@
-import { useState, useEffect, useContext } from "react";
-import { CartContext } from "../../contexts/CartContext";
+import { useState, useEffect } from "react";
 const categories = [
   { id: "cakes", name: "Cakes" },
   { id: "milkshakes", name: "Milkshakes" },
@@ -40,30 +39,10 @@ const products = {
 
 export default function MenuPage() {
 
-  const { setCartItems, setTotalPrice, cartItems, setTotalQuantity } = useContext(CartContext);
   const [selectedCategory, setSelectedCategory] = useState("cakes");
-  const itemsInCart = cartItems.map((item) => item.id);
-  console.log("Items in cart:", itemsInCart);
-  
-  
+
+
   const [fetchedImages, setFetchedImages] = useState([]);
-
-  // Example for adding an item
-const addToCart = (product) => {
-  const existingItem = cartItems.find(item => item.id === product.id);
-  if (existingItem) {
-    setCartItems(prev =>
-      prev.map(item =>
-        item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
-      )
-    );
-  } else {
-    setCartItems(prev => [...prev, { ...product, quantity: 1 }]);
-  }
-  setTotalPrice(prev => prev + parseFloat(product.price.replace('$', '')))
-  setTotalQuantity(prev => prev + 1);
-};
-
 
   useEffect(() => {
     fetch("https://dummyjson.com/recipes")
@@ -85,11 +64,10 @@ const addToCart = (product) => {
         {categories.map((cat) => (
           <button
             key={cat.id}
-            className={`md:px-5 md:py-2 p-2 font-semibold rounded-full border-2 transition-all duration-200 ${
-              selectedCategory === cat.id
+            className={`md:px-5 md:py-2 p-2 font-semibold rounded-full border-2 transition-all duration-200 ${selectedCategory === cat.id
                 ? "bg-[#BA4374] text-white border-[#BA4374]"
                 : "bg-white text-[#BA4374] border-[#BA4374]"
-            }`}
+              }`}
             onClick={() => setSelectedCategory(cat.id)}
           >
             {cat.name}
@@ -102,16 +80,16 @@ const addToCart = (product) => {
         {products[selectedCategory].map((product) => (
           <div key={product.id} className="bg-white rounded-xl p-4 shadow-md text-center">
             <img
-              src={ fetchedImages[product.id] || "https://placehold.co/600x400"}
+              src={fetchedImages[product.id] || "https://placehold.co/600x400"}
               alt={product.name}
               className="h-40 w-full object-contain mb-4"
             />
             <h3 className="text-xl font-semibold text-[#BA4374]">{product.name}</h3>
             <p className="text-gray-600 my-2">{product.price}</p>
-            <button 
-            disabled={itemsInCart.includes(product.id)}
-            onClick={()=> addToCart(product)}
-            className={`mt-2 ${itemsInCart.includes(product.id) ? "opacity-50 pointer-events-none" : ""} bg-[#BA4374] hover:bg-[#a02f5b] text-white px-4 py-2 rounded-full text-sm font-medium`}>
+            <button
+              disabled={itemsInCart.includes(product.id)}
+              onClick={() => addToCart(product)}
+              className={`mt-2 ${itemsInCart.includes(product.id) ? "opacity-50 pointer-events-none" : ""} bg-[#BA4374] hover:bg-[#a02f5b] text-white px-4 py-2 rounded-full text-sm font-medium`}>
               {itemsInCart.includes(product.id) ? "Added" : "Add to Cart"}
             </button>
           </div>
