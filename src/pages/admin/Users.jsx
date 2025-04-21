@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import * as Avatar from '@radix-ui/react-avatar';
 import * as Tabs from '@radix-ui/react-tabs';
-import { PlusIcon, SearchIcon, FilterIcon, MoreHorizontalIcon, Trash2Icon, Loader2Icon } from 'lucide-react';
+import { PlusIcon, SearchIcon, Trash2Icon, Loader2Icon } from 'lucide-react';
 import { apiService } from '../../lib/axios';
 import { toast } from 'sonner';
 import { baseURL } from '../../lib/utils';
