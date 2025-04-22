@@ -1,98 +1,231 @@
 import { useState, useEffect } from "react";
-const categories = [
-  { id: "cakes", name: "Cakes" },
-  { id: "milkshakes", name: "Milkshakes" },
-  { id: "sundaes", name: "Sundaes" },
-  { id: "galetos", name: "Galetos" },
-];
-
-const products = {
-  cakes: [
-    { id: 1, name: "Chocolate Cake", image: "/cakes/choc.png", price: "$5" },
-    { id: 2, name: "Vanilla Cake", image: "/cakes/vanilla.png", price: "$4" },
-    { id: 3, name: "Red Velvet", image: "/cakes/rv.png", price: "$6" },
-    { id: 4, name: "Cheesecake", image: "/cakes/cheese.png", price: "$5.5" },
-    { id: 5, name: "Carrot Cake", image: "/cakes/carrot.png", price: "$4.5" },
-  ],
-  milkshakes: [
-    { id: 6, name: "Strawberry Shake", image: "/milkshakes/straw.png", price: "$3.5" },
-    { id: 7, name: "Banana Shake", image: "/milkshakes/banana.png", price: "$3" },
-    { id: 8, name: "Oreo Shake", image: "/milkshakes/oreo.png", price: "$4" },
-    { id: 9, name: "Mango Shake", image: "/milkshakes/mango.png", price: "$3.5" },
-    { id: 10, name: "Chocolate Shake", image: "/milkshakes/choco.png", price: "$4" },
-  ],
-  sundaes: [
-    { id: 11, name: "Classic Sundae", image: "/sundaes/classic.png", price: "$4.5" },
-    { id: 12, name: "Choco Sundae", image: "/sundaes/choco.png", price: "$5" },
-    { id: 13, name: "Fruit Sundae", image: "/sundaes/fruit.png", price: "$4" },
-    { id: 14, name: "Nutty Sundae", image: "/sundaes/nutty.png", price: "$5.5" },
-    { id: 15, name: "Brownie Sundae", image: "/sundaes/brownie.png", price: "$6" },
-  ],
-  galetos: [
-    { id: 16, name: "Classic Galeto", image: "/galetos/classic.png", price: "$4" },
-    { id: 17, name: "Pistachio Galeto", image: "/galetos/pista.png", price: "$4.5" },
-    { id: 18, name: "Chocolate Galeto", image: "/galetos/choco.png", price: "$4.5" },
-    { id: 19, name: "Mango Galeto", image: "/galetos/mango.png", price: "$4" },
-    { id: 20, name: "Berry Galeto", image: "/galetos/berry.png", price: "$4.5" },
-  ],
-};
+import { apiService } from "@/lib/axios";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { Checkbox } from "@/components/ui/checkbox";
+import useDebounce from "../../hooks/useDebounce";
+import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function MenuPage() {
+  const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [isFeatured, setIsFeatured] = useState(false);
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 8,
+    total: 0
+  });
 
-  const [selectedCategory, setSelectedCategory] = useState("cakes");
+  // Fetch categories from API
+  const fetchCategories = async () => {
+    try {
+      const response = await apiService.get('/category/getAllCategories');
+      setCategories(response.data.data.categories);
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to fetch categories');
+    }
+  };
 
+  // Fetch products with filters and pagination
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+      const response = await apiService.get("/product/getProductsForUser", {
+        params: {
+          page: pagination.page,
+          limit: pagination.limit,
+          search: debouncedSearchQuery,
+          category: selectedCategory === "all" ? undefined : selectedCategory,
+          isFeatured: isFeatured || undefined
+        }
+      });
 
-  const [fetchedImages, setFetchedImages] = useState([]);
+      const { products: fetchedProducts, pagination: paginationData } = response.data.data;
+      setProducts(fetchedProducts);
+      setPagination(prev => ({
+        ...prev,
+        total: paginationData.total
+      }));
+    } catch (error) {
+      toast.error('Failed to fetch Products! Try refreshing your page');
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  // Load categories on initial render
   useEffect(() => {
-    fetch("https://dummyjson.com/recipes")
-      .then((res) => res.json())
-      .then((data) => {
-        const imgs = data.recipes.map((r) => r.image);
-        setFetchedImages(imgs);
-        // console.log("Fetched images:", imgs);
-      })
-      .catch((err) => console.error("Error fetching data:", err));
+    fetchCategories();
   }, []);
+
+  // Fetch products when filters or pagination changes
+  useEffect(() => {
+    fetchProducts();
+  }, [pagination.page, debouncedSearchQuery, selectedCategory, isFeatured]);
+
+  // Update pagination page
+  const handlePageChange = (newPage) => {
+    setPagination(prev => ({ ...prev, page: newPage }));
+  };
+
+  // Calculate total pages
+  const totalPages = Math.ceil(pagination.total / pagination.limit);
 
   return (
     <section className="bg-[#f8f8f8] min-h-screen p-6">
       <h1 className="text-4xl font-bold text-center text-[#BA4374] mb-10">Our Menu</h1>
 
-      {/* Tabs */}
-      <div className="flex justify-center md:gap-4 gap-2 mb-8">
-        {categories.map((cat) => (
-          <button
-            key={cat.id}
-            className={`md:px-5 md:py-2 p-2 font-semibold rounded-full border-2 transition-all duration-200 ${selectedCategory === cat.id
-              ? "bg-[#BA4374] text-white border-[#BA4374]"
-              : "bg-white text-[#BA4374] border-[#BA4374]"
-              }`}
-            onClick={() => setSelectedCategory(cat.id)}
+      {/* Filters */}
+      <div className="flex flex-col md:flex-row gap-4 mb-8 items-center justify-center">
+        <Input
+          placeholder="Search products..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="max-w-sm"
+        />
+
+        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="All Categories" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Categories</SelectItem>
+            {categories.map((category) => (
+              <SelectItem key={category._id} value={category._id}>
+                {category.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="featured"
+            checked={isFeatured}
+            onCheckedChange={setIsFeatured}
+          />
+          <label
+            htmlFor="featured"
+            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
           >
-            {cat.name}
-          </button>
-        ))}
+            Featured Only
+          </label>
+        </div>
       </div>
 
       {/* Products Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-        {products[selectedCategory].map((product) => (
-          <div key={product.id} className="bg-white rounded-xl p-4 shadow-md text-center">
-            <img
-              src={fetchedImages[product.id] || "https://placehold.co/600x400"}
-              alt={product.name}
-              className="h-40 w-full object-contain mb-4"
-            />
-            <h3 className="text-xl font-semibold text-[#BA4374]">{product.name}</h3>
-            <p className="text-gray-600 my-2">{product.price}</p>
-            <button
-              className={`mt-2 bg-[#BA4374] hover:bg-[#a02f5b] text-white px-4 py-2 rounded-full text-sm font-medium`}>
-              Add to Cart
-            </button>
+        {loading ? (
+          // Loading skeleton
+          Array(8).fill(0).map((_, index) => (
+            <Card key={`skeleton-${index}`} className="overflow-hidden">
+              <CardHeader>
+                <Skeleton className="h-40 w-full" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-6 w-3/4 mb-2" />
+                <Skeleton className="h-4 w-1/4 mb-2" />
+                <Skeleton className="h-4 w-1/2" />
+              </CardContent>
+              <CardFooter>
+                <Skeleton className="h-10 w-full" />
+              </CardFooter>
+            </Card>
+          ))
+        ) : products.length > 0 ? (
+          // Products list
+          products.map((product) => (
+            <Card key={product._id} className="overflow-hidden">
+              <CardHeader className="p-4">
+                <img
+                  src={product.image || "https://placehold.co/600x400"}
+                  alt={product.name}
+                  className="h-40 w-full object-contain"
+                />
+              </CardHeader>
+              <CardContent>
+                <CardTitle className="text-xl text-[#BA4374]">{product.name}</CardTitle>
+                <p className="text-gray-600 my-2">${product.price.toFixed(2)}</p>
+                <p className="text-sm text-gray-500">Quantity: {product.quantity}</p>
+              </CardContent>
+              <CardFooter>
+                <Button className="w-full bg-[#BA4374] hover:bg-[#a02f5b]">
+                  Add to Cart
+                </Button>
+              </CardFooter>
+            </Card>
+          ))
+        ) : (
+          // No products found
+          <div className="col-span-full text-center py-10">
+            <p className="text-gray-500 text-lg">No products found. Try changing your filters.</p>
           </div>
-        ))}
+        )}
       </div>
+
+      {/* Pagination */}
+      {!loading && totalPages > 0 && (
+        <div className="mt-8 flex justify-center">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={() => handlePageChange(pagination.page - 1)}
+                  className={pagination.page === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                />
+              </PaginationItem>
+
+              {Array.from(
+                { length: totalPages },
+                (_, i) => i + 1
+              )
+                .filter(page => {
+                  // Show current page, and pages around it
+                  if (totalPages <= 5) return true;
+                  if (page === 1 || page === totalPages) return true;
+                  if (Math.abs(page - pagination.page) <= 1) return true;
+                  return false;
+                })
+                .map((page, index, array) => {
+                  // Add ellipsis
+                  if (index > 0 && array[index - 1] !== page - 1) {
+                    return (
+                      <PaginationItem key={`ellipsis-${page}`}>
+                        <span className="px-4">...</span>
+                      </PaginationItem>
+                    );
+                  }
+
+                  return (
+                    <PaginationItem key={page}>
+                      <PaginationLink
+                        onClick={() => handlePageChange(page)}
+                        isActive={page === pagination.page}
+                      >
+                        {page}
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                })}
+
+              <PaginationItem>
+                <PaginationNext
+                  onClick={() => handlePageChange(pagination.page + 1)}
+                  className={pagination.page === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
     </section>
   );
 }
