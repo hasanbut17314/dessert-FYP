@@ -79,6 +79,14 @@ export default function MenuPage() {
   // Calculate total pages
   const totalPages = Math.ceil(pagination.total / pagination.limit);
 
+  const handleAddToCart = async (productId) => {
+    try {
+      await apiService.post(`/cart/addItem/${productId}`, {});
+      toast.success('Product added to cart successfully');
+    } catch (error) {
+      toast.error('Failed to add product to cart');
+    }
+  };
   return (
     <section className="bg-[#f8f8f8] min-h-screen p-6">
       <h1 className="text-4xl font-bold text-center text-[#BA4374] mb-10">Our Menu</h1>
@@ -157,7 +165,7 @@ export default function MenuPage() {
                 <p className="text-sm text-gray-500">Quantity: {product.quantity}</p>
               </CardContent>
               <CardFooter>
-                <Button className="w-full bg-[#BA4374] hover:bg-[#a02f5b]">
+                <Button className="w-full bg-[#BA4374] hover:bg-[#a02f5b]" onClick={() => handleAddToCart(product._id)}>
                   Add to Cart
                 </Button>
               </CardFooter>

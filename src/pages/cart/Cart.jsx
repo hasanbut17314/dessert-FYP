@@ -1,31 +1,79 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
+import { apiService } from "@/lib/axios"
+import { toast } from "sonner"
+import { Loader2 } from "lucide-react"
+import { Link } from "react-router"
+import { baseURL } from "../../lib/utils"
 
 export default function Cart() {
-  const [cartItems, setCartItems] = useState([
-    { id: 1, name: "Product 1", price: "10.00", quantity: 1 },
-    { id: 2, name: "Product 2", price: "20.00", quantity: 2 },
-    { id: 3, name: "Product 3", price: "30.00", quantity: 3 },
-  ])
+  const [cartItems, setCartItems] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [updatingItem, setUpdatingItem] = useState(null)
 
-  const increaseQuantity = (id) => {
-    setCartItems((prev) =>
-      prev.map((item) =>
-        item.id === id && item.quantity < 10 ? { ...item, quantity: item.quantity + 1 } : item
-      )
-    )
+  useEffect(() => {
+    fetchCart()
+  }, [])
+
+  const fetchCart = async () => {
+    try {
+      setLoading(true)
+      const response = await apiService.get("/cart/getUserCart")
+      setCartItems(response.data.data.items || [])
+    } catch (error) {
+      console.error("Error fetching cart:", error)
+      toast.error("Failed to load cart items")
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const decreaseQuantity = (id) => {
-    setCartItems((prev) =>
-      prev.map((item) =>
-        item.id === id && item.quantity > 0 ? { ...item, quantity: item.quantity - 1 } : item
-      )
-    )
+  const increaseQuantity = async (itemId) => {
+    try {
+      setUpdatingItem(itemId)
+      await apiService.put(`/cart/increment/${itemId}`, {})
+      await fetchCart()
+      toast.success("Item quantity increased")
+    } catch (error) {
+      console.error("Error increasing quantity:", error)
+      toast.error(error.response?.data?.message || "Failed to increase quantity")
+    } finally {
+      setUpdatingItem(null)
+    }
   }
 
-  const removeItemFromCart = (id) => {
-    setCartItems((prev) => prev.filter((item) => item.id !== id))
+  const decreaseQuantity = async (itemId) => {
+    try {
+      setUpdatingItem(itemId)
+      await apiService.put(`/cart/decrement/${itemId}`, {})
+      await fetchCart()
+      toast.success("Item quantity decreased")
+    } catch (error) {
+      console.error("Error decreasing quantity:", error)
+      toast.error(error.response?.data?.message || "Failed to decrease quantity")
+    } finally {
+      setUpdatingItem(null)
+    }
+  }
+
+  const removeItemFromCart = async (itemId) => {
+    try {
+      setUpdatingItem(itemId)
+      await fetch(`${baseURL}/cart/removeItem/${itemId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("accessToken")}`
+        },
+      })
+      await fetchCart()
+      toast.success("Item removed from cart")
+    } catch (error) {
+      console.error("Error removing item:", error)
+      toast.error(error.response?.data?.message || "Failed to remove item")
+    } finally {
+      setUpdatingItem(null)
+    }
   }
 
   const totalPrice = cartItems.reduce(
@@ -33,64 +81,104 @@ export default function Cart() {
     0
   )
 
+  if (loading) {
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center p-4 md:p-8">
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <p className="mt-4">Loading cart...</p>
+      </main>
+    )
+  }
+
   return (
     <main className="flex min-h-screen flex-col items-center p-4 md:p-8">
       <h1 className="text-3xl font-bold mb-8">Your Cart</h1>
       <div className="max-w-4xl w-full">
-        <div className="border rounded-lg overflow-hidden">
-          <div className="divide-y">
-            {cartItems.map((item, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between p-4"
-              >
-                <div className="flex items-center space-x-4">
-                  <div className="w-16 h-16 bg-gray-100 rounded-md" />
-                  <div>
-                    <h3 className="font-medium">{item.name}</h3>
-                    <div className="flex items-center gap-2 mt-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => decreaseQuantity(item.id)}
-                      >
-                        -
-                      </Button>
-                      <span>{item.quantity}</span>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => increaseQuantity(item.id)}
-                      >
-                        +
-                      </Button>
+        {cartItems.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-lg text-gray-600">Your cart is empty</p>
+            <Link className="mt-4" to="/menu">
+              Browse Menu
+            </Link>
+          </div>
+        ) : (
+          <div className="border rounded-lg overflow-hidden">
+            <div className="divide-y">
+              {cartItems.map((item) => (
+                <div
+                  key={item._id}
+                  className="flex items-center justify-between p-4"
+                >
+                  <div className="flex items-center space-x-4">
+                    <div className="w-16 h-16 bg-gray-100 rounded-md">
+                      {item.image && (
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="w-full h-full object-cover rounded-md"
+                        />
+                      )}
+                    </div>
+                    <div>
+                      <h3 className="font-medium">{item.title}</h3>
+                      <div className="flex items-center gap-2 mt-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => decreaseQuantity(item._id)}
+                          disabled={updatingItem === item._id}
+                        >
+                          {updatingItem === item._id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            "-"
+                          )}
+                        </Button>
+                        <span>{item.quantity}</span>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => increaseQuantity(item._id)}
+                          disabled={updatingItem === item._id}
+                        >
+                          {updatingItem === item._id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            "+"
+                          )}
+                        </Button>
+                      </div>
                     </div>
                   </div>
+                  <div className="text-right">
+                    <p className="font-bold">
+                      {(parseFloat(item.price) * item.quantity).toFixed(2)} Rs
+                    </p>
+                    <button
+                      className="text-sm cursor-pointer text-red-500"
+                      onClick={() => removeItemFromCart(item._id)}
+                      disabled={updatingItem === item._id}
+                    >
+                      {updatingItem === item._id ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        "Remove"
+                      )}
+                    </button>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="font-bold">
-                    {/* $ {(parseFloat(item.price) * item.quantity).toFixed(2)} */}
-                    {item.price}
-                  </p>
-                  <button
-                    className="text-sm cursor-pointer text-red-500"
-                    onClick={() => removeItemFromCart(item.id)}
-                  >
-                    Remove
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="p-4 bg-gray-50">
-            <div className="flex justify-between py-2">
-              <span>Subtotal</span>
-              <span className="font-medium">$ {totalPrice.toFixed(2)}</span>
+              ))}
             </div>
-            <Button className="w-full mt-4">Checkout</Button>
+
+            <div className="p-4 bg-gray-50">
+              <div className="flex justify-between py-2">
+                <span>Subtotal</span>
+                <span className="font-medium">{totalPrice.toFixed(2)} Rs</span>
+              </div>
+              <Button className="w-full mt-4">Checkout</Button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </main>
   )
