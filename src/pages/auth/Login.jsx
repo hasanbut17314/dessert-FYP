@@ -33,7 +33,6 @@ export default function Login() {
     try {
       setLoading(true);
       const response = await apiService.post("/user/login", formData, { withAuth: false });
-      console.log(response);
       const accessToken = response?.data?.data?.accessToken;
       const refreshToken = response?.data?.data?.refreshToken;
       const user = response?.data?.data?.user;
@@ -63,7 +62,7 @@ export default function Login() {
     if (isAuthenticated) {
       navigate("/", { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, []);
 
   return (
     <div className="sm:my-0 my-5 mx-3 md:min-h-screen min-h-[90vh] flex items-center justify-center text-white">
