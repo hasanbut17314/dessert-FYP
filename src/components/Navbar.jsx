@@ -34,7 +34,6 @@ export default function Navbar() {
       setCartCount(response.data.data.count)
     } catch (error) {
       console.error("Error fetching cart count:", error)
-      toast.error("Failed to load cart count")
     }
   }
 

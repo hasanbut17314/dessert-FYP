@@ -1,11 +1,12 @@
-import { useState } from 'react';
-import { Link, useLocation } from "react-router";
+import { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate } from "react-router";
 import * as NavigationMenu from '@radix-ui/react-navigation-menu';
 import { HomeIcon, UsersIcon, ShoppingCartIcon, LayersIcon, PackageIcon, MenuIcon, XIcon } from 'lucide-react';
 import useAuth from '../../hooks/useAuth';
 
 const Sidebar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const { user } = useAuth();
 
@@ -20,6 +21,12 @@ const Sidebar = () => {
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
   };
+
+  useEffect(() => {
+    if (!user || user.role !== 'admin') {
+      navigate('/', { replace: true });
+    }
+  }, [user, navigate]);
 
   return (
     <>
@@ -60,8 +67,8 @@ const Sidebar = () => {
                     <Link
                       to={item.path}
                       className={`flex items-center gap-3 px-3 py-2 rounded-md w-full transition-colors ${isActive
-                          ? 'bg-green-600 text-white font-medium'
-                          : 'text-slate-200 hover:bg-slate-700'
+                        ? 'bg-green-600 text-white font-medium'
+                        : 'text-slate-200 hover:bg-slate-700'
                         }`}
                       onClick={() => setIsOpen(false)}
                     >

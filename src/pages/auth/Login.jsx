@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Eye, EyeOff, Loader } from "lucide-react";
 import { Link } from "react-router";
 import { useNavigate } from "react-router";
 import { apiService } from "../../lib/axios";
 import { toast } from "sonner";
+import useAuth from "../../hooks/useAuth";
 
 export default function Login() {
+  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: "",
@@ -56,6 +58,12 @@ export default function Login() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/", { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   return (
     <div className="sm:my-0 my-5 mx-3 md:min-h-screen min-h-[90vh] flex items-center justify-center text-white">

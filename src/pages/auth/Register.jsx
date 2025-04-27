@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Eye, EyeOff, Loader } from "lucide-react";
 import { Link } from "react-router";
 import { apiService } from "../../lib/axios"
 import { toast } from "sonner";
+import { useNavigate } from "react-router";
+import useAuth from "../../hooks/useAuth";
 
 export default function Register() {
   const [loading, setLoading] = useState(false);
@@ -53,6 +55,15 @@ export default function Register() {
       setLoading(false);
     }
   };
+
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/", { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   return (
     <div className="flex my-5 sm:my-7 mx-3 items-center sm:min-h-screen min-h-[90vh] justify-center text-white">
