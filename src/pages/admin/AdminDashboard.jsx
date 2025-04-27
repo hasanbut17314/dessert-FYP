@@ -10,6 +10,7 @@ const Dashboard = () => {
 
   const [topProducts, setTopProducts] = useState([]);
   const [topCategories, setTopCategories] = useState([]);
+  const [monthlySales, setMonthlySales] = useState([]);
 
   const fetchTotalAnalytics = async () => {
     setLoading(true);
@@ -57,6 +58,21 @@ const Dashboard = () => {
     fetchSalesByCategory();
   }, []);
 
+  const fetchMonthlySales = async () => {
+    try {
+      const response = await apiService.get('/analytics/monthlySalesOverview');
+      setMonthlySales(response?.data?.data);
+    } catch (error) {
+      console.error('Error fetching monthly sales:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchMonthlySales();
+  }, []);
+
   const salesData = [
     { month: 'Jan', sales: 4000, orders: 240 },
     { month: 'Feb', sales: 3000, orders: 198 },
@@ -66,6 +82,9 @@ const Dashboard = () => {
     { month: 'Jun', sales: 6390, orders: 390 },
     { month: 'Jul', sales: 3490, orders: 250 },
   ]
+
+  console.log(monthlySales, 'monthlySales');
+
 
   const statCards = [
     {
@@ -131,7 +150,7 @@ const Dashboard = () => {
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart
-              data={salesData}
+              data={monthlySales}
               margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
             >
               <CartesianGrid strokeDasharray="3 3" />

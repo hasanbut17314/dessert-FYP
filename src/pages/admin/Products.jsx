@@ -11,10 +11,12 @@ import {
   XIcon,
   ImagePlusIcon,
   Loader2Icon,
+  SearchIcon,
 } from 'lucide-react';
 import { apiService } from '../../lib/axios';
 import { toast } from 'sonner';
 import { baseURL } from '../../lib/utils';
+import useDebounce from '@/hooks/useDebounce';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -26,6 +28,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 const Products = () => {
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
@@ -47,14 +58,31 @@ const Products = () => {
   const [deleteProductId, setDeleteProductId] = useState(null);
   const [openDropdownId, setOpenDropdownId] = useState(null);
   const [activeTab, setActiveTab] = useState('All');
+  const [pagination, setPagination] = useState({
+    total: 0,
+    limit: 10,
+    page: 1
+  });
+  const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   const imageInputRef = useRef(null);
 
-  const fetchProducts = async () => {
+  const fetchProducts = async (options = {}) => {
     try {
       setLoading(true);
-      const response = await apiService.get('/product/getAllProducts');
+      const { page = pagination.page, search = debouncedSearchTerm, category = activeTab !== 'All' ? activeTab : '' } = options;
+
+      const queryParams = new URLSearchParams();
+      queryParams.append('page', page);
+      queryParams.append('limit', 10);
+
+      if (search) queryParams.append('search', search);
+      if (category) queryParams.append('category', category);
+
+      const response = await apiService.get(`/product/getAllProducts?${queryParams.toString()}`);
       setProducts(response.data.data.products);
+      setPagination(response.data.data.pagination);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to fetch products');
     } finally {
@@ -72,9 +100,24 @@ const Products = () => {
   };
 
   useEffect(() => {
-    fetchProducts();
     fetchCategories();
+    // Initial fetch without any filters
+    fetchProducts({ page: 1 });
   }, []);
+
+  // Effect for search term changes
+  useEffect(() => {
+    fetchProducts({ page: 1, search: debouncedSearchTerm });
+  }, [debouncedSearchTerm]);
+
+  // Effect for tab changes
+  useEffect(() => {
+    fetchProducts({ page: 1 });
+  }, [activeTab]);
+
+  const handlePageChange = (page) => {
+    fetchProducts({ page });
+  };
 
   const handleEditProduct = (product) => {
     setSelectedProduct(product);
@@ -136,7 +179,7 @@ const Products = () => {
         toast.success('Product added successfully');
       }
 
-      await fetchProducts(); // Wait for products to be fetched
+      await fetchProducts({ page: pagination.page }); // Wait for products to be fetched
       setIsAddProductOpen(false);
       resetForm();
     } catch (error) {
@@ -162,7 +205,7 @@ const Products = () => {
         }
       });
       toast.success('Product deleted successfully');
-      await fetchProducts(); // Wait for products to be fetched
+      await fetchProducts({ page: pagination.page }); // Wait for products to be fetched
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to delete product');
     } finally {
@@ -184,14 +227,94 @@ const Products = () => {
     setImageFile(null);
   };
 
+  // Generate pagination items based on total pages
+  const renderPaginationItems = () => {
+    const totalPages = Math.ceil(pagination.total / pagination.limit);
+    const currentPage = pagination.page;
+
+    // Display logic for pagination
+    const items = [];
+
+    // Always show first page
+    items.push(
+      <PaginationItem key="first">
+        <PaginationLink
+          onClick={() => handlePageChange(1)}
+          isActive={currentPage === 1}>
+          1
+        </PaginationLink>
+      </PaginationItem>
+    );
+
+    // Show ellipsis if needed
+    if (currentPage > 3) {
+      items.push(
+        <PaginationItem key="ellipsis-1">
+          <PaginationEllipsis />
+        </PaginationItem>
+      );
+    }
+
+    // Show current page and neighbors
+    for (let i = Math.max(2, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) {
+      if (i > 1 && i < totalPages) {
+        items.push(
+          <PaginationItem key={i}>
+            <PaginationLink
+              onClick={() => handlePageChange(i)}
+              isActive={currentPage === i}>
+              {i}
+            </PaginationLink>
+          </PaginationItem>
+        );
+      }
+    }
+
+    // Show ellipsis if needed
+    if (currentPage < totalPages - 2) {
+      items.push(
+        <PaginationItem key="ellipsis-2">
+          <PaginationEllipsis />
+        </PaginationItem>
+      );
+    }
+
+    // Always show last page if there's more than one page
+    if (totalPages > 1) {
+      items.push(
+        <PaginationItem key="last">
+          <PaginationLink
+            onClick={() => handlePageChange(totalPages)}
+            isActive={currentPage === totalPages}>
+            {totalPages}
+          </PaginationLink>
+        </PaginationItem>
+      );
+    }
+
+    return items;
+  };
+
   return (
-    <div className="p-6 mt-12 md:m-0">
-      <div className="flex justify-between items-center mb-6">
+    <div className="md:p-6 p-0 mt-12 md:m-0">
+      <div className="flex md:flex-row flex-col md:gap-0 gap-4 justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold">Products Management</h1>
           <p className="text-slate-500">
             Manage your products inventory and categories
           </p>
+        </div>
+
+        {/* Search Input */}
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Search products..."
+            className="px-4 py-2 pl-10 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 focus:border-transparent"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={18} />
         </div>
 
         <Dialog.Root open={isAddProductOpen} onOpenChange={(open) => {
@@ -357,7 +480,7 @@ const Products = () => {
           </div>
         ) : (
           <Tabs.Root defaultValue="All" value={activeTab} onValueChange={setActiveTab}>
-            <Tabs.List className="flex border-b border-slate-200 px-4">
+            <Tabs.List className="flex border-b border-slate-200 md:px-4 md:overflow-hidden overflow-auto">
               <Tabs.Trigger
                 value="All"
                 className="px-4 py-2 text-sm data-[state=active]:border-b-2 data-[state=active]:border-green-600 data-[state=active]:font-medium"
@@ -377,7 +500,7 @@ const Products = () => {
 
             <Tabs.Content value="All" className="p-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {products.map((product) => (
+                {products.length > 0 ? products.map((product) => (
                   <div
                     key={product._id}
                     className="border border-slate-200 rounded-md overflow-hidden bg-white hover:shadow-md transition-shadow"
@@ -435,89 +558,145 @@ const Products = () => {
                         {product.name}
                       </h3>
                       <p className="text-slate-500 text-sm">
-                        ${product.price}
+                        Rs.{product.price}
                       </p>
                       <p className="text-slate-500 text-xs mt-1">
                         Stock: {product.quantity}
                       </p>
                     </div>
                   </div>
-                ))}
+                )) : (
+                  <div className="col-span-full flex justify-center items-center py-8">
+                    <p className="text-slate-500">No products found</p>
+                  </div>
+                )}
               </div>
+
+              {/* Pagination Component for All tab */}
+              {pagination.total > pagination.limit && (
+                <div className="mt-6">
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious
+                          onClick={() => handlePageChange(Math.max(1, pagination.page - 1))}
+                          disabled={pagination.page === 1}
+                        />
+                      </PaginationItem>
+
+                      {renderPaginationItems()}
+
+                      <PaginationItem>
+                        <PaginationNext
+                          onClick={() => handlePageChange(Math.min(Math.ceil(pagination.total / pagination.limit), pagination.page + 1))}
+                          disabled={pagination.page === Math.ceil(pagination.total / pagination.limit)}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                </div>
+              )}
             </Tabs.Content>
 
             {categories.map((category) => (
               <Tabs.Content key={category._id} value={category._id} className="p-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {products
-                    .filter((product) => product.category?._id === category._id)
-                    .map((product) => (
-                      <div
-                        key={product._id}
-                        className="border border-slate-200 rounded-md overflow-hidden bg-white hover:shadow-md transition-shadow"
-                      >
-                        <div className="relative h-40 bg-slate-100">
-                          <img
-                            src={product.image || 'https://placehold.co/150x150'}
-                            alt={product.name}
-                            className="w-full h-full object-cover"
-                          />
-                          {!product.isActive && (
-                            <div className="absolute top-2 right-2 bg-red-100 text-red-800 px-2 py-1 text-xs rounded-full">
-                              Inactive
-                            </div>
-                          )}
-                          {product.isFeatured && (
-                            <div className="absolute top-2 left-2 bg-yellow-100 text-yellow-800 px-2 py-1 text-xs rounded-full">
-                              Featured
-                            </div>
-                          )}
-                          <div className="absolute top-2 right-2">
-                            <DropdownMenu.Root
-                              open={openDropdownId === product._id}
-                              onOpenChange={(open) => setOpenDropdownId(open ? product._id : null)}
-                            >
-                              <DropdownMenu.Trigger asChild>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                  <MoreVerticalIcon size={16} />
-                                </Button>
-                              </DropdownMenu.Trigger>
-                              <DropdownMenu.Content
-                                align="end"
-                                className="bg-white rounded-md shadow-md border border-slate-200 overflow-hidden min-w-40"
-                              >
-                                <DropdownMenu.Item
-                                  className="px-3 py-2 text-sm hover:bg-slate-100 cursor-pointer flex items-center gap-2"
-                                  onSelect={() => handleEditProduct(product)}
-                                >
-                                  <PencilIcon size={16} />
-                                  <span>Edit Product</span>
-                                </DropdownMenu.Item>
-                                <DropdownMenu.Item
-                                  className="px-3 py-2 text-sm hover:bg-slate-100 cursor-pointer flex items-center gap-2 text-red-600"
-                                  onSelect={() => handleDeleteProduct(product._id)}
-                                >
-                                  <TrashIcon size={16} />
-                                  <span>Delete Product</span>
-                                </DropdownMenu.Item>
-                              </DropdownMenu.Content>
-                            </DropdownMenu.Root>
+                  {products.length > 0 ? products.map((product) => (
+                    <div
+                      key={product._id}
+                      className="border border-slate-200 rounded-md overflow-hidden bg-white hover:shadow-md transition-shadow"
+                    >
+                      <div className="relative h-40 bg-slate-100">
+                        <img
+                          src={product.image || 'https://placehold.co/150x150'}
+                          alt={product.name}
+                          className="w-full h-full object-cover"
+                        />
+                        {!product.isActive && (
+                          <div className="absolute top-2 right-2 bg-red-100 text-red-800 px-2 py-1 text-xs rounded-full">
+                            Inactive
                           </div>
-                        </div>
-                        <div className="p-3">
-                          <h3 className="font-semibold text-sm truncate">
-                            {product.name}
-                          </h3>
-                          <p className="text-slate-500 text-sm">
-                            ${product.price}
-                          </p>
-                          <p className="text-slate-500 text-xs mt-1">
-                            Stock: {product.quantity}
-                          </p>
+                        )}
+                        {product.isFeatured && (
+                          <div className="absolute top-2 left-2 bg-yellow-100 text-yellow-800 px-2 py-1 text-xs rounded-full">
+                            Featured
+                          </div>
+                        )}
+                        <div className="absolute top-2 right-2">
+                          <DropdownMenu.Root
+                            open={openDropdownId === product._id}
+                            onOpenChange={(open) => setOpenDropdownId(open ? product._id : null)}
+                          >
+                            <DropdownMenu.Trigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <MoreVerticalIcon size={16} />
+                              </Button>
+                            </DropdownMenu.Trigger>
+                            <DropdownMenu.Content
+                              align="end"
+                              className="bg-white rounded-md shadow-md border border-slate-200 overflow-hidden min-w-40"
+                            >
+                              <DropdownMenu.Item
+                                className="px-3 py-2 text-sm hover:bg-slate-100 cursor-pointer flex items-center gap-2"
+                                onSelect={() => handleEditProduct(product)}
+                              >
+                                <PencilIcon size={16} />
+                                <span>Edit Product</span>
+                              </DropdownMenu.Item>
+                              <DropdownMenu.Item
+                                className="px-3 py-2 text-sm hover:bg-slate-100 cursor-pointer flex items-center gap-2 text-red-600"
+                                onSelect={() => handleDeleteProduct(product._id)}
+                              >
+                                <TrashIcon size={16} />
+                                <span>Delete Product</span>
+                              </DropdownMenu.Item>
+                            </DropdownMenu.Content>
+                          </DropdownMenu.Root>
                         </div>
                       </div>
-                    ))}
+                      <div className="p-3">
+                        <h3 className="font-semibold text-sm truncate">
+                          {product.name}
+                        </h3>
+                        <p className="text-slate-500 text-sm">
+                          ${product.price}
+                        </p>
+                        <p className="text-slate-500 text-xs mt-1">
+                          Stock: {product.quantity}
+                        </p>
+                      </div>
+                    </div>
+                  )) : (
+                    <div className="col-span-full flex justify-center items-center py-8">
+                      <p className="text-slate-500">No products found in this category</p>
+                    </div>
+                  )}
                 </div>
+
+                {/* Pagination Component for Category tabs */}
+                {pagination.total > pagination.limit && (
+                  <div className="mt-6">
+                    <Pagination>
+                      <PaginationContent>
+                        <PaginationItem>
+                          <PaginationPrevious
+                            onClick={() => handlePageChange(Math.max(1, pagination.page - 1))}
+                            disabled={pagination.page === 1}
+                          />
+                        </PaginationItem>
+
+                        {renderPaginationItems()}
+
+                        <PaginationItem>
+                          <PaginationNext
+                            onClick={() => handlePageChange(Math.min(Math.ceil(pagination.total / pagination.limit), pagination.page + 1))}
+                            disabled={pagination.page === Math.ceil(pagination.total / pagination.limit)}
+                          />
+                        </PaginationItem>
+                      </PaginationContent>
+                    </Pagination>
+                  </div>
+                )}
               </Tabs.Content>
             ))}
           </Tabs.Root>

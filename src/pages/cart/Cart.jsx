@@ -5,17 +5,23 @@ import { toast } from "sonner"
 import { Loader2 } from "lucide-react"
 import { Link } from "react-router"
 import { baseURL } from "../../lib/utils"
+import useAuth from "@/hooks/useAuth"
 
 export default function Cart() {
   const [cartItems, setCartItems] = useState([])
   const [loading, setLoading] = useState(true)
   const [updatingItem, setUpdatingItem] = useState(null)
+  const { isAuthenticated } = useAuth()
 
   useEffect(() => {
     fetchCart()
   }, [])
 
   const fetchCart = async () => {
+    if (!isAuthenticated) {
+      setLoading(false)
+      return
+    }
     try {
       setLoading(true)
       const response = await apiService.get("/cart/getUserCart")
@@ -96,8 +102,8 @@ export default function Cart() {
       <div className="max-w-4xl w-full">
         {cartItems.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-lg text-gray-600">Your cart is empty</p>
-            <Link className="mt-4" to="/menu">
+            <p className="text-lg text-gray-600 mb-3">Your cart is empty</p>
+            <Link to="/menu" className="text-blue-500 hover:underline">
               Browse Menu
             </Link>
           </div>
