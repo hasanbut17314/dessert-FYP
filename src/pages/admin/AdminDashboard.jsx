@@ -73,18 +73,6 @@ const Dashboard = () => {
     fetchMonthlySales();
   }, []);
 
-  const salesData = [
-    { month: 'Jan', sales: 4000, orders: 240 },
-    { month: 'Feb', sales: 3000, orders: 198 },
-    { month: 'Mar', sales: 5000, orders: 320 },
-    { month: 'Apr', sales: 2780, orders: 190 },
-    { month: 'May', sales: 1890, orders: 120 },
-    { month: 'Jun', sales: 6390, orders: 390 },
-    { month: 'Jul', sales: 3490, orders: 250 },
-  ]
-
-  console.log(monthlySales, 'monthlySales');
-
 
   const statCards = [
     {
@@ -187,8 +175,8 @@ const Dashboard = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {topProducts?.length > 0 ? topProducts.map((product) => (
-                  <tr key={product._id}>
+                {topProducts?.length > 0 ? topProducts.map((product, i) => (
+                  <tr key={i}>
                     <td className="px-4 py-3 whitespace-nowrap">{product.name}</td>
                     <td className="px-4 py-3 whitespace-nowrap">{product.price}</td>
                     <td className="px-4 py-3 whitespace-nowrap">{product.quantity}</td>

@@ -51,7 +51,7 @@ function Routing() {
           element={
             <div className="flex flex-col lg:flex-row min-h-screen bg-slate-100">
               <Sidebar />
-              <div className="flex-1 transition-all duration-300 p-4 lg:p-6 lg:ml-56">
+              <div className="flex-1 transition-all duration-300 sm:p-4 lg:p-6 lg:ml-56">
                 <Routes>
                   <Route path="/" element={<Navigate to="/admin/dashboard" />} />
                   <Route path="dashboard" element={<Dashboard />} />

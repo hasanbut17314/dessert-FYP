@@ -105,7 +105,7 @@ export default function UserOrders() {
     }
 
     return (
-        <main className="min-h-screen p-4 md:p-8">
+        <main className="min-h-screen sm:p-4 p-3 md:p-8">
             <div className="max-w-6xl mx-auto">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
                     <h1 className="text-3xl font-bold mb-4 md:mb-0">My Orders</h1>
