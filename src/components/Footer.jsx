@@ -15,7 +15,7 @@ export default function Footer() {
           {/* Footer Links */}
           <nav className="flex flex-wrap justify-center flex-col md:justify-end space-x-12 gap-2 text-gray-400">
             <Link to="/privacy" className="hover:text-white">Privacy Policy</Link>
-            <Link to="/terms" className="hover:text-white">Terms of Service</Link>
+            <Link to="/orders" className="hover:text-white">Track Order</Link>
             <Link to="/faq" className="hover:text-white">FAQ</Link>
             <Link to="/contact" className="hover:text-white">Contact Us</Link>
           </nav>

@@ -158,7 +158,7 @@ export default function Cart() {
                   </div>
                   <div className="text-right">
                     <p className="font-bold">
-                      {(parseFloat(item.price) * item.quantity).toFixed(2)} Rs
+                      {(parseFloat(item.price) * item.quantity)} Rs
                     </p>
                     <button
                       className="text-sm cursor-pointer text-red-500"
@@ -179,9 +179,9 @@ export default function Cart() {
             <div className="p-4 bg-gray-50">
               <div className="flex justify-between py-2">
                 <span>Subtotal</span>
-                <span className="font-medium">{totalPrice.toFixed(2)} Rs</span>
+                <span className="font-medium">{totalPrice}PKR</span>
               </div>
-              <Button className="w-full mt-4">Checkout</Button>
+              <Link to="/checkout" className="w-full block mt-4 ms-auto bg-black text-white py-2 px-3 rounded-md text-center">Checkout</Link>
             </div>
           </div>
         )}

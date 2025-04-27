@@ -9,6 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import useDebounce from "../../hooks/useDebounce";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
+import useAuth from "@/hooks/useAuth";
 
 export default function MenuPage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -18,13 +19,14 @@ export default function MenuPage() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [isAddingToCart, setIsAddingToCart] = useState(null);
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 8,
     total: 0
   });
+  const { isAuthenticated } = useAuth();
 
-  // Fetch categories from API
   const fetchCategories = async () => {
     try {
       const response = await apiService.get('/category/getAllCategories');
@@ -34,7 +36,6 @@ export default function MenuPage() {
     }
   };
 
-  // Fetch products with filters and pagination
   const fetchProducts = async () => {
     try {
       setLoading(true);
@@ -80,11 +81,18 @@ export default function MenuPage() {
   const totalPages = Math.ceil(pagination.total / pagination.limit);
 
   const handleAddToCart = async (productId) => {
+    if (!isAuthenticated) {
+      toast.error('Please log in to add items to your cart');
+      return;
+    }
     try {
+      setIsAddingToCart(productId);
       await apiService.post(`/cart/addItem/${productId}`, {});
       toast.success('Product added to cart successfully');
     } catch (error) {
       toast.error('Failed to add product to cart');
+    } finally {
+      setIsAddingToCart(null);
     }
   };
   return (
@@ -160,13 +168,17 @@ export default function MenuPage() {
                 />
               </CardHeader>
               <CardContent>
-                <CardTitle className="text-xl text-[#BA4374]">{product.name}</CardTitle>
-                <p className="text-gray-600 my-2">${product.price.toFixed(2)}</p>
+                <CardTitle className="text-xl text-[#BA4374] line-clamp-1">{product.name}</CardTitle>
+                <p className="text-gray-600 my-2">Rs.{product.price}</p>
                 <p className="text-sm text-gray-500">Quantity: {product.quantity}</p>
               </CardContent>
               <CardFooter>
-                <Button className="w-full bg-[#BA4374] hover:bg-[#a02f5b]" onClick={() => handleAddToCart(product._id)}>
-                  Add to Cart
+                <Button
+                  className="w-full bg-[#BA4374] hover:bg-[#a02f5b]"
+                  onClick={() => handleAddToCart(product._id)}
+                  disabled={isAddingToCart === product._id}
+                >
+                  {isAddingToCart === product._id ? "Adding..." : "Add to Cart"}
                 </Button>
               </CardFooter>
             </Card>

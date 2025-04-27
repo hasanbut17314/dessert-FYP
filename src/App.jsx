@@ -9,6 +9,8 @@ import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import Profile from "./pages/Profile";
 import VerifyEmail from "./pages/auth/VerifyEmail";
+import Checkout from "./pages/checkout/Checkout";
+import UserOrders from "./pages/orders/Orders";
 
 import Users from "./pages/admin/Users";
 import Orders from "./pages/admin/Order";
@@ -36,43 +38,23 @@ function Routing() {
                 <Route path="/contact" element={<ContactUs />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/about" element={<About />} />
-
+                <Route path="/checkout" element={<Checkout />} />
+                <Route path="/orders" element={<UserOrders />} />
               </Routes>
               <Footer />
             </>
           }
         />
 
-<Route
-  path="/admin/*"
-  element={
-    <div className="flex flex-col lg:flex-row min-h-screen bg-slate-100">
-      <Sidebar />
-      <div className="flex-1 transition-all duration-300 p-4 lg:p-6 lg:ml-56">
-        <Routes>
-          <Route path="/" element={<Navigate to="/admin/dashboard" />} />
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="users" element={<Users />} />
-          <Route path="orders" element={<Orders />} />
-          <Route path="categories" element={<Categories />} />
-          <Route path="products" element={<Products />} />
-        </Routes>
-      </div>
-    </div>
-  }
-/>
-
-
-        {/* <Route
+        <Route
           path="/admin/*"
           element={
-            <div style={{ display: "flex" }}>
-              <div className="fixed w-56 bg-slate-800 text-white h-screen flex flex-col z-10">
-                <Sidebar />
-              </div>
-              <div style={{ flex: 1, padding: "20px", marginLeft: "200px" }}>
+            <div className="flex flex-col lg:flex-row min-h-screen bg-slate-100">
+              <Sidebar />
+              <div className="flex-1 transition-all duration-300 p-4 lg:p-6 lg:ml-56">
                 <Routes>
                   <Route path="/" element={<Navigate to="/admin/dashboard" />} />
+                  <Route path="dashboard" element={<Dashboard />} />
                   <Route path="users" element={<Users />} />
                   <Route path="orders" element={<Orders />} />
                   <Route path="categories" element={<Categories />} />
@@ -81,8 +63,8 @@ function Routing() {
               </div>
             </div>
           }
-        /> */}
-        
+        />
+
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/verify-email/:token" element={<VerifyEmail />} />
