@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react"
-import { Loader, LogOut, Menu, ShoppingCart, User2 } from "lucide-react"
+import { Loader, LogOut, Menu, ShoppingCart, User2, HomeIcon, SquareMenu, Info, PhoneIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Link, useLocation, useNavigate } from "react-router"
@@ -13,40 +13,25 @@ export default function Navbar() {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
   const [cartCount, setCartCount] = useState(0)
-  const pollingInterval = useRef(null)
   const { user, isAuthenticated } = useAuth()
 
   const navas = [
-    { name: "Home", href: "/" },
-    { name: "Menu", href: "/menu" },
-    { name: "About", href: "/about" },
-    { name: "Contact", href: "/contact" },
+    { name: "Home", href: "/", icon: <HomeIcon /> },
+    { name: "Menu", href: "/menu", icon: <SquareMenu /> },
+    { name: "About", href: "/about", icon: <Info /> },
+    { name: "Contact", href: "/contact", icon: <PhoneIcon /> },
   ]
 
   const fetchCartCount = async () => {
-    if (!isAuthenticated) {
-      setCartCount(0)
-      return
-    }
-
-    try {
-      const response = await apiService.get("/cart/getCartCount")
-      setCartCount(response.data.data.count)
-    } catch (error) {
-      console.error("Error fetching cart count:", error)
-    }
+    const cart = JSON.parse(localStorage.getItem("cart")) || []
+    setCartCount(cart.length)
   }
 
   useEffect(() => {
     fetchCartCount()
-    pollingInterval.current = setInterval(fetchCartCount, 2500)
-
-    return () => {
-      if (pollingInterval.current) {
-        clearInterval(pollingInterval.current)
-      }
-    }
-  }, [isAuthenticated])
+    window.addEventListener("cartUpdated", fetchCartCount)
+    return () => window.removeEventListener("cartUpdated", fetchCartCount)
+  }, [])
 
   const handleLogout = async () => {
     setLoading(true)
@@ -74,13 +59,14 @@ export default function Navbar() {
                 <Menu size={30} />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-[240px] sm:w-[300px]">
-              <nav className="flex flex-col gap-4 mt-8 p-4">
+            <SheetContent side="left" className="w-[240px] sm:w-[300px] bg-gray-800 text-white border-r-[#BA4374]">
+              <nav className="flex flex-col gap-6 mt-8 p-4">
                 {navas.map((a) => (
                   <Link key={a.name} to={a.href}
                     onClick={() => setIsOpen(false)}
-                    className={`text-xl font-medium ${location.pathname === a.href ? "text-[#BA4374]" : "text-black"}`}
+                    className={`text-xl flex items-center gap-3 font-medium ${location.pathname === a.href ? "text-[#BA4374]" : "text-white"}`}
                   >
+                    {a.icon}
                     {a.name}
                   </Link>
                 ))}

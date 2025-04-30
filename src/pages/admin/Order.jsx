@@ -58,7 +58,7 @@ export default function Order() {
     } finally {
       setLoading(false)
     }
-  }
+  };
 
   const viewOrderDetails = async (orderId) => {
     try {
@@ -214,8 +214,8 @@ export default function Order() {
                         <TableCell className="font-medium">{order.order_no}</TableCell>
                         <TableCell>
                           <div className="flex flex-col">
-                            <span>{`${order.userId.firstName} ${order.userId.lastName}`}</span>
-                            <span className="text-xs text-zinc-400">{order.userId.email}</span>
+                            <span>{`${order.firstName} ${order.lastName}`}</span>
+                            <span className="text-xs text-zinc-400">{order.email}</span>
                           </div>
                         </TableCell>
                         <TableCell>
@@ -310,11 +310,11 @@ export default function Order() {
                   <div className="space-y-2 text-sm md:p-4 p-2 rounded-md">
                     <div className="grid grid-cols-3">
                       <p className="text-slate-500">Name:</p>
-                      <p className="col-span-2">{`${selectedOrder.userId.firstName} ${selectedOrder.userId.lastName}`}</p>
+                      <p className="col-span-2">{`${selectedOrder.firstName} ${selectedOrder.lastName}`}</p>
                     </div>
                     <div className="grid grid-cols-3">
                       <p className="text-slate-500">Email:</p>
-                      <p className="col-span-2">{selectedOrder.userId.email}</p>
+                      <p className="col-span-2">{selectedOrder.email}</p>
                     </div>
                     <div className="grid grid-cols-3">
                       <p className="text-slate-500">Order Date:</p>

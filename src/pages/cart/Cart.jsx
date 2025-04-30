@@ -37,6 +37,7 @@ export default function Cart() {
       })
       setCartItems(updatedCart)
       localStorage.setItem("cart", JSON.stringify(updatedCart))
+      window.dispatchEvent(new Event("cartUpdated"))
       toast.success("Item quantity increased")
     } catch (error) {
       console.error("Error increasing quantity:", error)
@@ -54,7 +55,7 @@ export default function Cart() {
         removeItemFromCart(itemId)
         return
       }
-      
+
       const updatedCart = cartItems.map(item => {
         if (item._id === itemId && item.quantity > 1) {
           return { ...item, quantity: item.quantity - 1 }
@@ -63,6 +64,7 @@ export default function Cart() {
       })
       setCartItems(updatedCart)
       localStorage.setItem("cart", JSON.stringify(updatedCart))
+      window.dispatchEvent(new Event("cartUpdated"))
       toast.success("Item quantity decreased")
     } catch (error) {
       console.error("Error decreasing quantity:", error)
@@ -78,6 +80,7 @@ export default function Cart() {
       const updatedCart = cartItems.filter(item => item._id !== itemId)
       setCartItems(updatedCart)
       localStorage.setItem("cart", JSON.stringify(updatedCart))
+      window.dispatchEvent(new Event("cartUpdated"))
       toast.success("Item removed from cart")
     } catch (error) {
       console.error("Error removing item:", error)

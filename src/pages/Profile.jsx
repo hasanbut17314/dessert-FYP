@@ -245,9 +245,9 @@ export default function ProfilePage() {
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold mb-8">My Profile</h1>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
           {/* Profile Summary Card */}
-          <Card className="bg-zinc-900 border-zinc-800 text-white md:col-span-1">
+          <Card className="bg-zinc-900 border-zinc-800 text-white md:col-span-2">
             <CardHeader className="pb-2">
               <CardTitle>Account Info</CardTitle>
             </CardHeader>
@@ -296,7 +296,7 @@ export default function ProfilePage() {
 
                 <div className="flex justify-between items-center">
                   <span className="text-zinc-400">Member Since</span>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 text-sm">
                     <Calendar className="h-4 w-4 text-zinc-400" />
                     <span>{profile?.createdAt ? formatDate(profile.createdAt) : "N/A"}</span>
                   </div>
@@ -306,7 +306,7 @@ export default function ProfilePage() {
           </Card>
 
           {/* Profile Edit Tabs */}
-          <div className="md:col-span-2">
+          <div className="md:col-span-3">
             <Tabs defaultValue="personal" className="w-full">
               <TabsList className="grid w-full grid-cols-2 bg-zinc-900 text-white">
                 <TabsTrigger

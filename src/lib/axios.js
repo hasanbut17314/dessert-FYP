@@ -48,6 +48,7 @@ const skipAuthUrls = [
     '/user/login',
     '/user/register',
     'user/verify-email',
+    '/order/create'
 ];
 api.interceptors.request.use(
     (config) => {

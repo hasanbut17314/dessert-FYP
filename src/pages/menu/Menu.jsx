@@ -79,13 +79,13 @@ export default function MenuPage() {
   const handleAddToCart = (product) => {
     try {
       setIsAddingToCart(product._id);
-      
+
       // Get current cart from localStorage
       const currentCart = JSON.parse(localStorage.getItem("cart") || "[]");
-      
+
       // Check if product already exists in cart
       const existingItemIndex = currentCart.findIndex(item => item._id === product._id);
-      
+
       if (existingItemIndex !== -1) {
         // If product exists, increase quantity
         currentCart[existingItemIndex].quantity += 1;
@@ -99,10 +99,10 @@ export default function MenuPage() {
           quantity: 1
         });
       }
-      
+
       // Save updated cart to localStorage
       localStorage.setItem("cart", JSON.stringify(currentCart));
-      
+      window.dispatchEvent(new Event("cartUpdated"));
       toast.success('Product added to cart successfully');
     } catch {
       toast.error('Failed to add product to cart');

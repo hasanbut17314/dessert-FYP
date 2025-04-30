@@ -28,12 +28,6 @@ export default function Checkout() {
     const [orderComplete, setOrderComplete] = useState(false)
     const navigate = useNavigate()
     const { isAuthenticated, user } = useAuth()
-    
-    // const isAuthenticated = true
-    // const user = {
-    //     firstName: "John",
-    //     lastName: "Doe",
-    // };
 
     useEffect(() => {
         if (isAuthenticated && user) {
@@ -44,7 +38,7 @@ export default function Checkout() {
                 email: user.email || ""
             }))
         }
-        
+
         fetchCart()
     }, [isAuthenticated, user])
 
@@ -75,9 +69,9 @@ export default function Checkout() {
         const requiredFields = isAuthenticated
             ? ['address', 'city', 'contactNumber']
             : ['firstName', 'lastName', 'email', 'address', 'city', 'contactNumber']
-            
+
         const missingFields = requiredFields.filter(field => !form[field])
-        
+
         if (missingFields.length > 0) {
             toast.error(`Please fill all required fields: ${missingFields.join(', ')}`)
             return
@@ -85,30 +79,19 @@ export default function Checkout() {
 
         try {
             setSubmitting(true)
-            
-            if (isAuthenticated) {
-                await apiService.post("/order/create", {
-                    ...form,
-                    items: cartItems.map(item => ({
-                        productId: item._id,
-                        quantity: item.quantity,
-                        price: item.price
-                    }))
-                })
-            } else {
-                const guestOrders = JSON.parse(localStorage.getItem("guestOrders") || "[]")
-                guestOrders.push({
-                    id: Date.now().toString(),
-                    date: new Date().toISOString(),
-                    status: "pending",
-                    customerInfo: form,
-                    items: cartItems,
-                    totalAmount: totalPrice
-                })
-                localStorage.setItem("guestOrders", JSON.stringify(guestOrders))
-            }
-            
+
+            await apiService.post("/order/create", {
+                ...form,
+                items: cartItems.map(item => ({
+                    prodId: item._id,
+                    quantity: item.quantity,
+                    price: item.price
+                }))
+            })
+
             localStorage.setItem("cart", JSON.stringify([]))
+            window.dispatchEvent(new Event("cartUpdated"))
+            setCartItems([])
             setOrderComplete(true)
             toast.success("Order placed successfully!")
         } catch (error) {
@@ -164,7 +147,7 @@ export default function Checkout() {
                         <p className="text-zinc-400 mb-8">You will receive a confirmation mail shortly.</p>
                         <Button
                             className="w-full bg-[#BA4374] hover:bg-[#a03964] text-white"
-                            onClick={() => isAuthenticated ? navigate("/orders") : navigate("/")}
+                            onClick={() => isAuthenticated ? navigate("/orders") : navigate("/menu")}
                         >
                             {isAuthenticated ? "View Orders" : "Continue Shopping"}
                         </Button>
@@ -211,7 +194,7 @@ export default function Checkout() {
 
                                 <div className="mt-8">
                                     <div>
-                                        <p className="text-xs text-zinc-400">*Order will be delivered in 3-5 business days</p>
+                                        <p className="text-xs text-zinc-400">*Order will be delivered within 30 to 60 minutes</p>
                                     </div>
                                     <Separator className="my-2 bg-zinc-800" />
                                     <div className="flex justify-between font-bold text-[#BA4374]">
