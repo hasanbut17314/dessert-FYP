@@ -1,10 +1,8 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router";
-import Navbar from "./components/Navbar";
 import Home from "./pages/home/Home";
 import Menu from "./pages/menu/Menu";
 import Cart from "./pages/cart/Cart";
 import ContactUs from "./pages/contact/ContactUs";
-import Footer from "./components/Footer";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import Profile from "./pages/Profile";
@@ -22,6 +20,7 @@ import Dashboard from "./pages/admin/AdminDashboard";
 import { Toaster } from "./components/ui/sonner";
 import About from "./pages/about/About";
 import { useEffect } from "react";
+import Layout from "./layout/Layout";
 
 function Routing() {
   useEffect(() => {
@@ -33,25 +32,16 @@ function Routing() {
   return (
     <Router>
       <Routes>
-        <Route
-          path="/*"
-          element={
-            <>
-              <Navbar />
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/menu" element={<Menu />} />
-                <Route path="/cart" element={<Cart />} />
-                <Route path="/contact" element={<ContactUs />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/checkout" element={<Checkout />} />
-                <Route path="/orders" element={<UserOrders />} />
-              </Routes>
-              <Footer />
-            </>
-          }
-        />
+        <Route path="/" element={<Layout />}>
+          <Route index element={<Home />} />
+          <Route path="menu" element={<Menu />} />
+          <Route path="cart" element={<Cart />} />
+          <Route path="contact" element={<ContactUs />} />
+          <Route path="profile" element={<Profile />} />
+          <Route path="about" element={<About />} />
+          <Route path="checkout" element={<Checkout />} />
+          <Route path="orders" element={<UserOrders />} />
+        </Route>
 
         <Route
           path="/admin/*"
