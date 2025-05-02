@@ -38,7 +38,6 @@ export default function Cart() {
       setCartItems(updatedCart)
       localStorage.setItem("cart", JSON.stringify(updatedCart))
       window.dispatchEvent(new Event("cartUpdated"))
-      toast.success("Item quantity increased")
     } catch (error) {
       console.error("Error increasing quantity:", error)
       toast.error("Failed to increase quantity")
@@ -65,7 +64,6 @@ export default function Cart() {
       setCartItems(updatedCart)
       localStorage.setItem("cart", JSON.stringify(updatedCart))
       window.dispatchEvent(new Event("cartUpdated"))
-      toast.success("Item quantity decreased")
     } catch (error) {
       console.error("Error decreasing quantity:", error)
       toast.error("Failed to decrease quantity")
@@ -153,7 +151,7 @@ export default function Cart() {
                           size="sm"
                           variant="outline"
                           onClick={() => increaseQuantity(item._id)}
-                          disabled={updatingItem === item._id}
+                          disabled={updatingItem === item._id || item.quantity >= 10}
                         >
                           {updatingItem === item._id ? (
                             <Loader2 className="h-4 w-4 animate-spin" />

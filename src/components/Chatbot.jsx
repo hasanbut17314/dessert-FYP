@@ -54,7 +54,7 @@ export default function Chatbot() {
                     bottom: '90px',
                     right: '20px',
                     width: '350px',
-                    height: '82vh',
+                    height: '78vh',
                     borderRadius: '8px',
                     overflow: 'hidden',
                     boxShadow: `0 0 20px rgba(186, 67, 116, 0.3)`,

@@ -5,7 +5,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { apiService } from "@/lib/axios"
-import { toast } from "sonner"
 import { Loader2, ChevronDown, ChevronUp, Package, Calendar, Clock } from "lucide-react"
 import { useNavigate } from "react-router"
 import { format } from "date-fns"
@@ -25,13 +24,9 @@ export default function UserOrders() {
     const { isAuthenticated } = useAuth()
 
     useEffect(() => {
-        if (!isAuthenticated) {
-            navigate("/login")
-            return
-        }
 
         fetchOrders()
-    }, [pagination.page, statusFilter, isAuthenticated, navigate])
+    }, [pagination.page, statusFilter, navigate])
 
     const fetchOrders = async () => {
         try {
@@ -50,7 +45,6 @@ export default function UserOrders() {
             setPagination(response.data.data.pagination)
         } catch (error) {
             console.error("Error fetching orders:", error)
-            toast.error("Failed to load orders")
         } finally {
             setLoading(false)
         }
@@ -100,6 +94,15 @@ export default function UserOrders() {
             <main className="flex min-h-screen flex-col items-center justify-center p-4 md:p-8">
                 <Loader2 className="h-8 w-8 animate-spin text-[#BA4374]" />
                 <p className="mt-4">Loading orders...</p>
+            </main>
+        )
+    }
+
+    if (!isAuthenticated) {
+        return (
+            <main className="flex min-h-screen flex-col items-center justify-center p-4 md:p-8">
+                <p className="mt-4 text-lg">Please login to view your order history</p>
+                <Button className="mt-4 bg-[#BA4374] hover:bg-[#a03964] text-white rounded-lg" onClick={() => navigate("/login")}>Login</Button>
             </main>
         )
     }
