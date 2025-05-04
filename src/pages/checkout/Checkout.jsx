@@ -80,6 +80,15 @@ export default function Checkout() {
         try {
             setSubmitting(true)
 
+            const accessToken = localStorage.getItem("accessToken");
+            const headers = {
+                "Content-Type": "application/json"
+            };
+
+            if (accessToken) {
+                headers["Authorization"] = `Bearer ${accessToken}`;
+            }
+
             await apiService.post("/order/create", {
                 ...form,
                 items: cartItems.map(item => ({
@@ -87,7 +96,7 @@ export default function Checkout() {
                     quantity: item.quantity,
                     price: item.price
                 }))
-            })
+            }, { headers });
 
             localStorage.setItem("cart", JSON.stringify([]))
             window.dispatchEvent(new Event("cartUpdated"))
@@ -147,7 +156,7 @@ export default function Checkout() {
                         <p className="text-zinc-400 mb-8">You will receive a confirmation mail shortly.</p>
                         <Button
                             className="w-full bg-[#BA4374] hover:bg-[#a03964] text-white"
-                            onClick={() => isAuthenticated ? navigate("/orders") : navigate("/menu")}
+                            onClick={() => isAuthenticated ? window.location.href = "/orders" : window.location.href = "/menu"}
                         >
                             {isAuthenticated ? "View Orders" : "Continue Shopping"}
                         </Button>

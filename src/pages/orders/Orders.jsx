@@ -26,9 +26,13 @@ export default function UserOrders() {
     useEffect(() => {
 
         fetchOrders()
-    }, [pagination.page, statusFilter, navigate])
+    }, [pagination.page, statusFilter])
 
     const fetchOrders = async () => {
+        if (!isAuthenticated) {
+            setLoading(false)
+            return
+        }
         try {
             setLoading(true)
             const queryParams = new URLSearchParams({
