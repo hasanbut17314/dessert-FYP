@@ -4,11 +4,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
+import { Input } from "@/components/ui/input"
 import { apiService } from "@/lib/axios"
-import { Loader2, ChevronDown, ChevronUp, Package, Calendar, Clock } from "lucide-react"
+import { Loader2, ChevronDown, ChevronUp, Package, Calendar, Clock, Search } from "lucide-react"
 import { useNavigate } from "react-router"
 import { format } from "date-fns"
 import useAuth from "@/hooks/useAuth"
+import { toast } from "sonner"
 
 export default function UserOrders() {
     const [orders, setOrders] = useState([])
@@ -20,17 +22,21 @@ export default function UserOrders() {
     })
     const [statusFilter, setStatusFilter] = useState("")
     const [expandedOrder, setExpandedOrder] = useState(null)
+    const [orderNo, setOrderNo] = useState("")
+    const [isSearching, setIsSearching] = useState(false)
     const navigate = useNavigate()
     const { isAuthenticated } = useAuth()
 
     useEffect(() => {
-
-        fetchOrders()
-    }, [pagination.page, statusFilter])
+        if (isAuthenticated) {
+            fetchOrders()
+        } else {
+            setLoading(false)
+        }
+    }, [pagination.page, statusFilter, isAuthenticated])
 
     const fetchOrders = async () => {
         if (!isAuthenticated) {
-            setLoading(false)
             return
         }
         try {
@@ -49,6 +55,41 @@ export default function UserOrders() {
             setPagination(response.data.data.pagination)
         } catch (error) {
             console.error("Error fetching orders:", error)
+            toast.error("Failed to fetch orders")
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const handleOrderSearch = async (e) => {
+        e.preventDefault()
+        if (!orderNo.trim()) {
+            toast.error("Please enter an order number")
+            return
+        }
+
+        try {
+            setIsSearching(true)
+            await fetchOrderByOrderNo(orderNo.trim())
+        } finally {
+            setIsSearching(false)
+        }
+    }
+
+    const fetchOrderByOrderNo = async (orderNumber) => {
+        try {
+            setLoading(true)
+            const response = await apiService.get(`/order/getOrderByOrderno/${orderNumber}`)
+            setOrders([response.data.data])
+            setPagination({
+                page: 1,
+                limit: 10,
+                total: 1,
+            })
+        } catch (error) {
+            console.error("Error fetching order:", error)
+            toast.error("No order found with that number")
+            setOrders([])
         } finally {
             setLoading(false)
         }
@@ -59,6 +100,15 @@ export default function UserOrders() {
             setExpandedOrder(null)
         } else {
             setExpandedOrder(orderId)
+        }
+    }
+
+    const resetSearch = () => {
+        setOrderNo("")
+        if (isAuthenticated) {
+            fetchOrders()
+        } else {
+            setOrders([])
         }
     }
 
@@ -102,38 +152,69 @@ export default function UserOrders() {
         )
     }
 
-    if (!isAuthenticated) {
-        return (
-            <main className="flex min-h-screen flex-col items-center justify-center p-4 md:p-8">
-                <p className="mt-4 text-lg">Please login to view your order history</p>
-                <Button className="mt-4 bg-[#BA4374] hover:bg-[#a03964] text-white rounded-lg" onClick={() => navigate("/login")}>Login</Button>
-            </main>
-        )
-    }
-
     return (
         <main className="min-h-screen sm:p-4 p-3 md:p-8">
             <div className="max-w-6xl mx-auto">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
-                    <h1 className="text-3xl font-bold mb-4 md:mb-0">My Orders</h1>
+                    <h1 className="text-3xl font-bold mb-4 md:mb-0">
+                        {isAuthenticated ? "My Orders" : "Track Your Order"}
+                    </h1>
 
-                    <div className="w-full md:w-auto">
-                        <Select value={statusFilter} onValueChange={setStatusFilter}>
-                            <SelectTrigger className="w-full md:w-[180px] border-zinc-800">
-                                <SelectValue placeholder="Filter by status" />
-                            </SelectTrigger>
-                            <SelectContent className="border-zinc-800">
-                                <SelectItem value="all">All Orders</SelectItem>
-                                <SelectItem value="Pending">Pending</SelectItem>
-                                <SelectItem value="Shipped">Shipped</SelectItem>
-                                <SelectItem value="Delivered">Delivered</SelectItem>
-                                <SelectItem value="Cancelled">Cancelled</SelectItem>
-                            </SelectContent>
-                        </Select>
+                    <div className="w-full md:w-auto flex flex-col md:flex-row gap-4">
+                        {!isAuthenticated ? (
+                            <form onSubmit={handleOrderSearch} className="flex gap-2 w-full md:w-auto">
+                                <Input
+                                    placeholder="Enter order number"
+                                    value={orderNo}
+                                    onChange={(e) => setOrderNo(e.target.value)}
+                                    className="border-zinc-800"
+                                />
+                                <Button
+                                    type="submit"
+                                    className="bg-[#BA4374] hover:bg-[#a03964]"
+                                    disabled={isSearching}
+                                >
+                                    {isSearching ? (
+                                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                    ) : (
+                                        <Search className="h-4 w-4 mr-2" />
+                                    )}
+                                    Track
+                                </Button>
+                            </form>
+                        ) : (
+                            <Select value={statusFilter} onValueChange={setStatusFilter}>
+                                <SelectTrigger className="w-full md:w-[180px] border-zinc-800">
+                                    <SelectValue placeholder="Filter by status" />
+                                </SelectTrigger>
+                                <SelectContent className="border-zinc-800">
+                                    <SelectItem value="all">All Orders</SelectItem>
+                                    <SelectItem value="Pending">Pending</SelectItem>
+                                    <SelectItem value="Shipped">Shipped</SelectItem>
+                                    <SelectItem value="Delivered">Delivered</SelectItem>
+                                    <SelectItem value="Cancelled">Cancelled</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        )}
                     </div>
                 </div>
 
-                {orders.length === 0 ? (
+                {!isAuthenticated && orders.length === 0 && (
+                    <Card className="bg-zinc-900 border-zinc-800 text-white">
+                        <CardContent className="flex flex-col items-center justify-center py-12">
+                            <Package className="h-16 w-16 text-zinc-700 mb-4" />
+                            <h3 className="text-xl font-medium mb-2">Track your order</h3>
+                            <p className="text-zinc-400 mb-6 text-center">
+                                Enter your order number to check its status
+                            </p>
+                            <Button className="bg-[#BA4374] hover:bg-[#a03964] text-white" onClick={() => navigate("/menu")}>
+                                Browse Menu
+                            </Button>
+                        </CardContent>
+                    </Card>
+                )}
+
+                {orders.length === 0 && isAuthenticated ? (
                     <Card className="bg-zinc-900 border-zinc-800 text-white">
                         <CardContent className="flex flex-col items-center justify-center py-12">
                             <Package className="h-16 w-16 text-zinc-700 mb-4" />
@@ -149,112 +230,125 @@ export default function UserOrders() {
                         </CardContent>
                     </Card>
                 ) : (
-                    <div className="space-y-4">
-                        {orders.map((order) => (
-                            <Card key={order._id} className="bg-zinc-900 border-zinc-800 text-white overflow-hidden">
-                                <CardHeader className="p-4 md:p-6">
-                                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-                                        <div className="flex flex-col mb-4 md:mb-0">
-                                            <div className="flex items-center gap-2">
-                                                <CardTitle className="text-lg md:text-xl">Order #{order.order_no}</CardTitle>
-                                                <Badge className={`${getStatusColor(order.status)} border`}>{order.status}</Badge>
-                                            </div>
-                                            <div className="flex items-center gap-4 mt-2 text-sm text-zinc-400">
-                                                <div className="flex items-center gap-1">
-                                                    <Calendar className="h-4 w-4" />
-                                                    {formatDate(order.createdAt)}
-                                                </div>
-                                                <div className="flex items-center gap-1">
-                                                    <Clock className="h-4 w-4" />
-                                                    {formatTime(order.createdAt)}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-4">
-                                            <div className="text-right">
-                                                <p className="text-sm text-zinc-400">Total Amount</p>
-                                                <p className="font-bold text-lg text-[#BA4374]">{order.totalPrice} PKR</p>
-                                            </div>
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                onClick={() => toggleOrderExpand(order._id)}
-                                                className="text-zinc-400 hover:text-white hover:bg-zinc-800"
-                                            >
-                                                {expandedOrder === order._id ? (
-                                                    <ChevronUp className="h-5 w-5" />
-                                                ) : (
-                                                    <ChevronDown className="h-5 w-5" />
-                                                )}
-                                            </Button>
-                                        </div>
+                    <>
+                        {orders.length > 0 && (
+                            <>
+                                {!isAuthenticated && (
+                                    <div className="flex justify-end mb-4">
+                                        <Button variant="outline" onClick={resetSearch} className="hover:text-white border-zinc-800 hover:bg-zinc-800">
+                                            Clear Search
+                                        </Button>
                                     </div>
-                                </CardHeader>
-
-                                {expandedOrder === order._id && (
-                                    <CardContent className="p-4 md:p-6 pt-0">
-                                        <Separator className="mb-4 bg-zinc-700" />
-
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-20">
-                                            <div>
-                                                <h3 className="font-medium mb-2 text-[#BA4374]">Order Items</h3>
-                                                <div className="space-y-3">
-                                                    {order.orderItems.map((item, index) => (
-                                                        <div key={index} className="flex items-center gap-3">
-                                                            <div className="w-12 h-12 bg-zinc-800 rounded-md overflow-hidden">
-                                                                {item.prodId.image && (
-                                                                    <img
-                                                                        src={item.prodId.image || "/placeholder.svg"}
-                                                                        alt={item.prodId.name}
-                                                                        className="w-full h-full object-cover"
-                                                                    />
-                                                                )}
+                                )}
+                                <div className="space-y-4">
+                                    {orders.map((order) => (
+                                        <Card key={order._id} className="bg-zinc-900 border-zinc-800 text-white overflow-hidden">
+                                            <CardHeader className="p-4 md:p-6">
+                                                <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
+                                                    <div className="flex flex-col mb-4 md:mb-0">
+                                                        <div className="flex items-center gap-2">
+                                                            <CardTitle className="text-lg md:text-xl">Order #{order.order_no}</CardTitle>
+                                                            <Badge className={`${getStatusColor(order.status)} border`}>{order.status}</Badge>
+                                                        </div>
+                                                        <div className="flex items-center gap-4 mt-2 text-sm text-zinc-400">
+                                                            <div className="flex items-center gap-1">
+                                                                <Calendar className="h-4 w-4" />
+                                                                {formatDate(order.createdAt)}
                                                             </div>
-                                                            <div className="flex-1">
-                                                                <p className="font-medium">{item.prodId.name}</p>
-                                                                <div className="flex justify-between text-sm text-zinc-400">
-                                                                    <p>Qty: {item.quantity}</p>
-                                                                    <p>{item.price} PKR</p>
+                                                            <div className="flex items-center gap-1">
+                                                                <Clock className="h-4 w-4" />
+                                                                {formatTime(order.createdAt)}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="text-right">
+                                                            <p className="text-sm text-zinc-400">Total Amount</p>
+                                                            <p className="font-bold text-lg text-[#BA4374]">{order.totalPrice} PKR</p>
+                                                        </div>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            onClick={() => toggleOrderExpand(order._id)}
+                                                            className="text-zinc-400 hover:text-white hover:bg-zinc-800"
+                                                        >
+                                                            {expandedOrder === order._id ? (
+                                                                <ChevronUp className="h-5 w-5" />
+                                                            ) : (
+                                                                <ChevronDown className="h-5 w-5" />
+                                                            )}
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            </CardHeader>
+
+                                            {expandedOrder === order._id && (
+                                                <CardContent className="p-4 md:p-6 pt-0">
+                                                    <Separator className="mb-4 bg-zinc-700" />
+
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-20">
+                                                        <div>
+                                                            <h3 className="font-medium mb-2 text-[#BA4374]">Order Items</h3>
+                                                            <div className="space-y-3">
+                                                                {order.orderItems.map((item, index) => (
+                                                                    <div key={index} className="flex items-center gap-3">
+                                                                        <div className="w-12 h-12 bg-zinc-800 rounded-md overflow-hidden">
+                                                                            {item.prodId.image && (
+                                                                                <img
+                                                                                    src={item.prodId.image || "/placeholder.svg"}
+                                                                                    alt={item.prodId.name}
+                                                                                    className="w-full h-full object-cover"
+                                                                                />
+                                                                            )}
+                                                                        </div>
+                                                                        <div className="flex-1">
+                                                                            <p className="font-medium">{item.prodId.name}</p>
+                                                                            <div className="flex justify-between text-sm text-zinc-400">
+                                                                                <p>Qty: {item.quantity}</p>
+                                                                                <p>{item.price} PKR</p>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+
+                                                        <div>
+                                                            <h3 className="font-medium mb-2 text-[#BA4374]">Delivery Information</h3>
+                                                            <div className="space-y-2 text-sm">
+                                                                <div className="grid grid-cols-3">
+                                                                    <p className="text-zinc-400">Address:</p>
+                                                                    <p className="col-span-2">{order.address}</p>
+                                                                </div>
+                                                                <div className="grid grid-cols-3">
+                                                                    <p className="text-zinc-400">City:</p>
+                                                                    <p className="col-span-2">{order.city}</p>
+                                                                </div>
+                                                                {order.postalCode && (
+                                                                    <div className="grid grid-cols-3">
+                                                                        <p className="text-zinc-400">Postal Code:</p>
+                                                                        <p className="col-span-2">{order.postalCode}</p>
+                                                                    </div>
+                                                                )}
+                                                                <div className="grid grid-cols-3">
+                                                                    <p className="text-zinc-400">Contact:</p>
+                                                                    <p className="col-span-2">{order.contactNumber}</p>
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-
-                                            <div>
-                                                <h3 className="font-medium mb-2 text-[#BA4374]">Delivery Information</h3>
-                                                <div className="space-y-2 text-sm">
-                                                    <div className="grid grid-cols-3">
-                                                        <p className="text-zinc-400">Address:</p>
-                                                        <p className="col-span-2">{order.address}</p>
                                                     </div>
-                                                    <div className="grid grid-cols-3">
-                                                        <p className="text-zinc-400">City:</p>
-                                                        <p className="col-span-2">{order.city}</p>
-                                                    </div>
-                                                    {order.postalCode && (
-                                                        <div className="grid grid-cols-3">
-                                                            <p className="text-zinc-400">Postal Code:</p>
-                                                            <p className="col-span-2">{order.postalCode}</p>
-                                                        </div>
-                                                    )}
-                                                    <div className="grid grid-cols-3">
-                                                        <p className="text-zinc-400">Contact:</p>
-                                                        <p className="col-span-2">{order.contactNumber}</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                )}
-                            </Card>
-                        ))}
-                    </div>
+                                                </CardContent>
+                                            )}
+                                        </Card>
+                                    ))}
+                                </div>
+                            </>
+                        )}
+                    </>
                 )}
 
-                {/* Pagination */}
-                {pagination.total > pagination.limit && (
+                {/* Pagination - only show for authenticated users with multiple pages */}
+                {isAuthenticated && pagination.total > pagination.limit && (
                     <div className="flex justify-center mt-8">
                         <div className="flex items-center gap-2">
                             <Button
