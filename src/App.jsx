@@ -9,6 +9,8 @@ import Profile from "./pages/Profile";
 import VerifyEmail from "./pages/auth/VerifyEmail";
 import Checkout from "./pages/checkout/Checkout";
 import UserOrders from "./pages/orders/Orders";
+import Faq from "./pages/home/Faq";
+import Privacy from "./pages/home/Privacy";
 
 import Users from "./pages/admin/Users";
 import Orders from "./pages/admin/Order";
@@ -41,6 +43,8 @@ function Routing() {
           <Route path="about" element={<About />} />
           <Route path="checkout" element={<Checkout />} />
           <Route path="orders" element={<UserOrders />} />
+          <Route path="faq" element={<Faq />} />
+          <Route path="privacy" element={<Privacy />} />
         </Route>
 
         <Route
