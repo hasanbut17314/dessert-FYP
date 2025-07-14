@@ -23,7 +23,8 @@ export default function Checkout() {
         address: "",
         city: "",
         postalCode: "",
-        contactNumber: ""
+        contactNumber: "",
+        paymentMethod: "cash"
     })
     const [orderComplete, setOrderComplete] = useState(false)
     const navigate = useNavigate()
@@ -316,9 +317,9 @@ export default function Checkout() {
                                     <div className="space-y-3">
                                         <Label>Payment Method</Label>
                                         <RadioGroup
-                                            defaultValue="cash"
                                             name="paymentMethod"
-                                            value="cash"
+                                            value={form.paymentMethod}
+                                            onValueChange={(value) => setForm({ ...form, paymentMethod: value })}
                                             className="space-y-2"
                                         >
                                             <div className="flex items-center space-x-2 rounded-md border border-zinc-800 p-3">
@@ -332,11 +333,17 @@ export default function Checkout() {
                                                 <RadioGroupItem value="card" id="card" />
                                                 <Label htmlFor="card" className="flex items-center gap-2 cursor-pointer">
                                                     <CreditCard className="h-5 w-5 text-[#BA4374]" />
-                                                    Credit/Debit Card
+                                                    Jazz Cash/Easy Paisa
                                                 </Label>
                                             </div>
                                         </RadioGroup>
                                     </div>
+                                    {form.paymentMethod === "card" && (
+                                        <div className="space-y-2">
+                                            <p className="text-sm text-zinc-400">Account Number:</p>
+                                            <p className="text-sm text-zinc-500">03119906084 <span className="text-xs text-zinc-400">(Rider will confirm at the time of delivery)</span></p>
+                                        </div>
+                                    )}
 
                                     <Button
                                         type="submit"

@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
 import * as Tabs from '@radix-ui/react-tabs';
-import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import * as Switch from '@radix-ui/react-switch';
 import {
   PlusIcon,
@@ -67,6 +66,20 @@ const Products = () => {
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   const imageInputRef = useRef(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (openDropdownId && !event.target.closest('.dropdown-container')) {
+        setOpenDropdownId(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [openDropdownId]);
 
   const fetchProducts = async (options = {}) => {
     try {
@@ -521,36 +534,34 @@ const Products = () => {
                           Featured
                         </div>
                       )}
-                      <div className="absolute top-2 right-2">
-                        <DropdownMenu.Root
-                          open={openDropdownId === product._id}
-                          onOpenChange={(open) => setOpenDropdownId(open ? product._id : null)}
+                      <div className="absolute top-2 right-2 dropdown-container">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => setOpenDropdownId(openDropdownId === product._id ? null : product._id)}
                         >
-                          <DropdownMenu.Trigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                              <MoreVerticalIcon size={16} />
-                            </Button>
-                          </DropdownMenu.Trigger>
-                          <DropdownMenu.Content
-                            align="end"
-                            className="bg-white rounded-md shadow-md border border-slate-200 overflow-hidden min-w-40"
-                          >
-                            <DropdownMenu.Item
-                              className="px-3 py-2 text-sm hover:bg-slate-100 cursor-pointer flex items-center gap-2"
-                              onSelect={() => handleEditProduct(product)}
+                          <MoreVerticalIcon size={16} />
+                        </Button>
+
+                        {openDropdownId === product._id && (
+                          <div className="absolute right-0 top-full mt-1 bg-white rounded-md shadow-md border border-slate-200 overflow-hidden min-w-40 z-50">
+                            <button
+                              className="w-full px-3 py-2 text-sm hover:bg-slate-100 cursor-pointer flex items-center gap-2"
+                              onClick={() => handleEditProduct(product)}
                             >
                               <PencilIcon size={16} />
                               <span>Edit Product</span>
-                            </DropdownMenu.Item>
-                            <DropdownMenu.Item
-                              className="px-3 py-2 text-sm hover:bg-slate-100 cursor-pointer flex items-center gap-2 text-red-600"
-                              onSelect={() => handleDeleteProduct(product._id)}
+                            </button>
+                            <button
+                              className="w-full px-3 py-2 text-sm hover:bg-slate-100 cursor-pointer flex items-center gap-2 text-red-600"
+                              onClick={() => handleDeleteProduct(product._id)}
                             >
                               <TrashIcon size={16} />
                               <span>Delete Product</span>
-                            </DropdownMenu.Item>
-                          </DropdownMenu.Content>
-                        </DropdownMenu.Root>
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div className="p-3">
@@ -622,36 +633,34 @@ const Products = () => {
                             Featured
                           </div>
                         )}
-                        <div className="absolute top-2 right-2">
-                          <DropdownMenu.Root
-                            open={openDropdownId === product._id}
-                            onOpenChange={(open) => setOpenDropdownId(open ? product._id : null)}
+                        <div className="absolute top-2 right-2 dropdown-container">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => setOpenDropdownId(openDropdownId === product._id ? null : product._id)}
                           >
-                            <DropdownMenu.Trigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <MoreVerticalIcon size={16} />
-                              </Button>
-                            </DropdownMenu.Trigger>
-                            <DropdownMenu.Content
-                              align="end"
-                              className="bg-white rounded-md shadow-md border border-slate-200 overflow-hidden min-w-40"
-                            >
-                              <DropdownMenu.Item
-                                className="px-3 py-2 text-sm hover:bg-slate-100 cursor-pointer flex items-center gap-2"
-                                onSelect={() => handleEditProduct(product)}
+                            <MoreVerticalIcon size={16} />
+                          </Button>
+
+                          {openDropdownId === product._id && (
+                            <div className="absolute right-0 top-full mt-1 bg-white rounded-md shadow-md border border-slate-200 overflow-hidden min-w-40 z-50">
+                              <button
+                                className="w-full px-3 py-2 text-sm hover:bg-slate-100 cursor-pointer flex items-center gap-2"
+                                onClick={() => handleEditProduct(product)}
                               >
                                 <PencilIcon size={16} />
                                 <span>Edit Product</span>
-                              </DropdownMenu.Item>
-                              <DropdownMenu.Item
-                                className="px-3 py-2 text-sm hover:bg-slate-100 cursor-pointer flex items-center gap-2 text-red-600"
-                                onSelect={() => handleDeleteProduct(product._id)}
+                              </button>
+                              <button
+                                className="w-full px-3 py-2 text-sm hover:bg-slate-100 cursor-pointer flex items-center gap-2 text-red-600"
+                                onClick={() => handleDeleteProduct(product._id)}
                               >
                                 <TrashIcon size={16} />
                                 <span>Delete Product</span>
-                              </DropdownMenu.Item>
-                            </DropdownMenu.Content>
-                          </DropdownMenu.Root>
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </div>
                       <div className="p-3">

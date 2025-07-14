@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { PlusIcon, EditIcon, TrashIcon, XIcon, MoreVerticalIcon, TagIcon, ImagePlusIcon, Loader2Icon } from 'lucide-react';
 import { apiService } from '../../lib/axios';
 import { toast } from 'sonner';
@@ -30,6 +29,20 @@ const Categories = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteCategoryId, setDeleteCategoryId] = useState(null);
   const [openDropdownId, setOpenDropdownId] = useState(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (openDropdownId && !event.target.closest('.dropdown-container')) {
+        setOpenDropdownId(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [openDropdownId]);
 
   const fetchCategories = async () => {
     try {
@@ -264,32 +277,35 @@ const Categories = () => {
                     </div>
                   )}
                 </div>
-                <DropdownMenu.Root
-                  open={openDropdownId === category._id}
-                  onOpenChange={(open) => setOpenDropdownId(open ? category._id : null)}
-                >
-                  <DropdownMenu.Trigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <MoreVerticalIcon size={16} />
-                    </Button>
-                  </DropdownMenu.Trigger>
-                  <DropdownMenu.Content align="end" className="bg-white rounded-md shadow-md border border-slate-200 overflow-hidden min-w-40">
-                    <DropdownMenu.Item
-                      className="px-3 py-2 text-sm hover:bg-slate-100 cursor-pointer flex items-center gap-2"
-                      onSelect={() => handleEditCategory(category)}
-                    >
-                      <EditIcon size={16} />
-                      <span>Edit Category</span>
-                    </DropdownMenu.Item>
-                    <DropdownMenu.Item
-                      className="px-3 py-2 text-sm hover:bg-slate-100 cursor-pointer flex items-center gap-2 text-red-600"
-                      onSelect={() => handleDeleteCategory(category._id)}
-                    >
-                      <TrashIcon size={16} />
-                      <span>Delete Category</span>
-                    </DropdownMenu.Item>
-                  </DropdownMenu.Content>
-                </DropdownMenu.Root>
+                <div className="relative dropdown-container">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => setOpenDropdownId(openDropdownId === category._id ? null : category._id)}
+                  >
+                    <MoreVerticalIcon size={16} />
+                  </Button>
+
+                  {openDropdownId === category._id && (
+                    <div className="absolute right-0 top-full mt-1 bg-white rounded-md shadow-md border border-slate-200 overflow-hidden min-w-40 z-50">
+                      <button
+                        className="w-full px-3 py-2 text-sm hover:bg-slate-100 cursor-pointer flex items-center gap-2"
+                        onClick={() => handleEditCategory(category)}
+                      >
+                        <EditIcon size={16} />
+                        <span>Edit Category</span>
+                      </button>
+                      <button
+                        className="w-full px-3 py-2 text-sm hover:bg-slate-100 cursor-pointer flex items-center gap-2 text-red-600"
+                        onClick={() => handleDeleteCategory(category._id)}
+                      >
+                        <TrashIcon size={16} />
+                        <span>Delete Category</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <h3 className="text-lg font-medium mb-1">{category.name}</h3>
